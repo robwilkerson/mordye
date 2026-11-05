@@ -1,0 +1,2 @@
+# The binary `go build ./cmd/mordye` drops in the repo root.
+/mordye
