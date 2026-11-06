@@ -44,6 +44,8 @@ The input is a sparse palette:
 - **`accent`:** on a theme with an accent menu, the swatch you chose. It keeps `primary` and `secondary` out of the terminal colors, so changing the accent never moves them.
 - **`terminal`:** any terminal colors the source already has. These pass through unchanged.
 
+The palette's `name` and every swatch name must start with an ASCII letter or digit, then use only letters, digits, `.`, `_`, and `-`. Names come from theme files and end up in generated config, so mordye rejects anything else rather than pass it along.
+
 The output always has the same 37 fields:
 
 - **15 interface roles**, such as `primary`, `background`, `surface_container_high`, and `on_surface`

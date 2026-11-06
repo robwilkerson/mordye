@@ -117,6 +117,17 @@ func TestRejectsAWallpaperTheme(t *testing.T) {
 	}
 }
 
+func TestUnsafeThemeIDIsRejected(t *testing.T) {
+	evil := strings.Replace(string(theme(t, "nord")), `"id": "nord"`, `"id": "nord\"\n[shell]"`, 1)
+	in, err := Parse(settings("nord", "", ""), []byte(evil))
+	if err == nil {
+		_, err = mordye.Complete(in)
+	}
+	if err == nil || !strings.Contains(err.Error(), `name "nord\"\n[shell]"`) {
+		t.Errorf("err = %v, want one rejecting the theme's name", err)
+	}
+}
+
 func TestRejectsAnUnknownFlavorOrAccent(t *testing.T) {
 	for _, s := range [][]byte{
 		settings("catppuccin", "espresso", "green"),

@@ -191,9 +191,29 @@ func Complete(in Input) (Output, error) {
 	return p.output(), nil
 }
 
+// nameRule describes the characters a palette or swatch name may use.
+const nameRule = "start with an ASCII letter or digit, then use only letters, digits, '.', '_', and '-'"
+
+// safeName reports whether s follows nameRule. Names reach templates that
+// write config files, where a newline, quote, or escape code could inject
+// config. The leading letter or digit keeps names like ".." and "-rf" out of
+// file paths and shell commands.
+func safeName(s string) bool {
+	for i, r := range s {
+		alnum := r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9'
+		if !alnum && (i == 0 || r != '.' && r != '_' && r != '-') {
+			return false
+		}
+	}
+	return s != ""
+}
+
 func validate(in Input) error {
 	if in.Version != Version {
 		return fmt.Errorf("input version %d: want %d", in.Version, Version)
+	}
+	if in.Name != "" && !safeName(in.Name) {
+		return fmt.Errorf("name %q: %s", in.Name, nameRule)
 	}
 	for _, role := range []string{"primary", "on_surface"} {
 		if in.Colors[role] == "" {
@@ -215,6 +235,9 @@ func validate(in Input) error {
 		}
 	}
 	for name, hex := range in.Swatches {
+		if !safeName(name) {
+			return fmt.Errorf("swatch name %q: %s", name, nameRule)
+		}
 		if err := check("swatches."+name, hex); err != nil {
 			return err
 		}
