@@ -2,6 +2,7 @@ package mordye
 
 import (
 	"encoding/json"
+	"math"
 	"strings"
 	"testing"
 )
@@ -242,6 +243,68 @@ func TestBlackPrefersTheThemesOwnSurface(t *testing.T) {
 	delete(in.Colors, "surface_container_highest")
 	if got := complete(t, in).Terminal.Normal.Black; got != "#363a4f" {
 		t.Errorf("black = %s, want the theme's surface_container_high #363a4f", got)
+	}
+}
+
+// nord defines the lower surface rungs but not surface_container_highest, as
+// Nord's Dux theme does.
+func nord() Input {
+	return Input{
+		Version: 1,
+		Colors: map[string]string{
+			"primary": "#81a1c1", "on_surface": "#eceff4", "outline": "#d8dee9",
+			"background": "#2e3440", "surface": "#3b4252",
+			"surface_container": "#434c5e", "surface_container_high": "#4c566a",
+		},
+	}
+}
+
+func TestMissingRungKeepsTheThemesSpacing(t *testing.T) {
+	out := complete(t, nord())
+	container := mustHex(t, out.UI.SurfaceContainer).lch()
+	high := mustHex(t, out.UI.SurfaceContainerHigh).lch()
+	highest := mustHex(t, out.UI.SurfaceContainerHighest).lch()
+	if want := high.L + (high.L - container.L); math.Abs(highest.L-want) > 0.005 {
+		t.Errorf("highest %s has L %.3f, want %.3f: one of the theme's own steps above high", out.UI.SurfaceContainerHighest, highest.L, want)
+	}
+}
+
+func TestMissingRungTakesTheNearestRungsTint(t *testing.T) {
+	out := complete(t, nord())
+	high := mustHex(t, out.UI.SurfaceContainerHigh).lch()
+	highest := mustHex(t, out.UI.SurfaceContainerHighest).lch()
+	if math.Abs(highest.C-high.C) > 0.005 || hueGap(highest.H, high.H) > 5 {
+		t.Errorf("highest %s (C %.3f H %.0f), want high's tint (C %.3f H %.0f)", out.UI.SurfaceContainerHighest, highest.C, highest.H, high.C, high.H)
+	}
+}
+
+func TestOneRungUsesTheDefaultSpacing(t *testing.T) {
+	in := nord()
+	delete(in.Colors, "surface_container")
+	out := complete(t, in)
+	high := mustHex(t, out.UI.SurfaceContainerHigh).lch()
+	for name, c := range map[string]struct {
+		hex  string
+		want float64
+	}{
+		"surface_container":         {out.UI.SurfaceContainer, high.L - rungStep},
+		"surface_container_highest": {out.UI.SurfaceContainerHighest, high.L + rungStep},
+	} {
+		if got := mustHex(t, c.hex).lch().L; math.Abs(got-c.want) > 0.005 {
+			t.Errorf("%s %s has L %.3f, want %.3f: a default step from high", name, c.hex, got, c.want)
+		}
+	}
+}
+
+func TestMissingMiddleRungSitsHalfway(t *testing.T) {
+	in := nord()
+	in.Colors["surface_container_highest"] = "#5e6884"
+	delete(in.Colors, "surface_container_high")
+	out := complete(t, in)
+	container := mustHex(t, out.UI.SurfaceContainer).lch()
+	highest := mustHex(t, out.UI.SurfaceContainerHighest).lch()
+	if got, want := mustHex(t, out.UI.SurfaceContainerHigh).lch().L, (container.L+highest.L)/2; math.Abs(got-want) > 0.005 {
+		t.Errorf("high has L %.3f, want %.3f: halfway between its neighbors", got, want)
 	}
 }
 

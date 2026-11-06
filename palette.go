@@ -146,6 +146,9 @@ const (
 	tintedText = 0.08 // text above this chroma counts as a color (Tokyo Night's teal)
 	yellowLift = 0.05 // lightness added to a generated yellow, which reads dark otherwise
 	brightStep = 0.06 // lightness from black to bright black, and white to bright white
+	// rungStep is the lightness between surface rungs when a theme defines only
+	// one and so gives no spacing to copy: Catppuccin Macchiato's own spacing.
+	rungStep = 0.07
 	// A generated gray keeps this share of its source's chroma: a hint of the
 	// theme's warmth or coolness, short of tinting it (Gruvbox went brown at 0.6).
 	neutralChroma = 0.25
@@ -287,8 +290,49 @@ func (p *builder) neutralBase() lch {
 	return p.lchOf(p.ui["on_surface"])
 }
 
+// rungs are the surface ladder, darkest first: each sits a step lighter than
+// the one below it.
+var rungs = []string{"surface_container", "surface_container_high", "surface_container_highest"}
+
+// fillRungs generates missing surface rungs from the ones the theme defines.
+// A missing rung takes the hue and chroma of the nearest defined rung, and
+// sits the theme's own spacing away from it: the average gap between its
+// defined rungs, or rungStep when it defines only one. With no rungs defined
+// there is nothing to copy, and fillNeutrals generates them.
+func (p *builder) fillRungs() {
+	var defined []int
+	for i, role := range rungs {
+		if _, ok := p.ui[role]; ok {
+			defined = append(defined, i)
+		}
+	}
+	if len(defined) == 0 {
+		return
+	}
+	first, last := defined[0], defined[len(defined)-1]
+	step := rungStep
+	if last > first {
+		step = (p.lchOf(p.ui[rungs[last]]).L - p.lchOf(p.ui[rungs[first]]).L) / float64(last-first)
+	}
+	for i, role := range rungs {
+		if _, ok := p.ui[role]; ok {
+			continue
+		}
+		near := defined[0]
+		for _, d := range defined {
+			if abs(float64(d-i)) < abs(float64(near-i)) {
+				near = d
+			}
+		}
+		c := p.lchOf(p.ui[rungs[near]])
+		c.L += float64(i-near) * step
+		p.ui[role], p.src["ui."+role] = c.hex(), "generated"
+	}
+}
+
 // fillNeutrals generates any surface or outline role the theme leaves out.
 func (p *builder) fillNeutrals() {
+	p.fillRungs()
 	base := p.neutralBase()
 	for _, role := range []string{"background", "surface", "surface_container", "surface_container_high", "surface_container_highest", "outline"} {
 		if _, ok := p.ui[role]; ok {
