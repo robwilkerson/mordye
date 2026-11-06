@@ -15,7 +15,10 @@ reviews:
   collapse_walkthrough: true
   changed_files_summary: false
   sequence_diagrams: false
-  request_changes_workflow: false
+  # Requests changes on blocking findings and approves once they're resolved.
+  # .github/workflows/ready-on-approval.yml takes the PR out of draft then.
+  auto_approvals:
+    enabled: true
   commit_status: true
   review_status: false
   poem: false
@@ -103,7 +106,6 @@ reviews:
       enabled: true
     github-checks:
       enabled: true
-      timeout_ms: 90000
 
   finishing_touches:
     docstrings:

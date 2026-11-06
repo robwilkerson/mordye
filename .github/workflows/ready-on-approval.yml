@@ -1,0 +1,23 @@
+name: ✅ Ready on Approval
+
+# PRs open as drafts so CodeRabbit reviews before anyone else is asked. Once it
+# approves (auto_approvals in .coderabbit.yaml), this takes the PR out of draft.
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  ready:
+    if: >-
+      github.event.review.user.login == 'coderabbitai[bot]' &&
+      github.event.review.state == 'approved' &&
+      github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh pr ready "$PR" --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
