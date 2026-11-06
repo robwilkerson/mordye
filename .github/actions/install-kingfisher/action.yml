@@ -1,0 +1,74 @@
+# Installs Kingfisher with Sigstore provenance verification.
+#
+# Downloads the release tarball and its attestation bundle from GitHub
+# Releases, verifies the tarball against the bundle, then installs it. Release
+# assets are mutable, so an unverified download would install whatever is at
+# the URL today. That matters more for Kingfisher than for most tools: it is
+# the secrets gate, and a substituted binary reporting zero findings turns
+# every scan green while checking nothing.
+#
+# Mechanism differs from install-trivy, which this otherwise mirrors. Trivy
+# signs a checksums.txt that `cosign verify-blob` checks and `sha256sum -c`
+# validates against; Kingfisher publishes no checksums file, only a
+# per-artifact Sigstore bundle (multiple.intoto.jsonl, from v2.0.0 onward).
+# `gh attestation verify` is the equivalent, and needs no cosign-installer.
+#
+# Verification reads the bundle from disk rather than the GitHub attestation
+# API, so a rate limit or API outage can't fail the scan. --repo and
+# --signer-workflow are what keep that safe: both tarball and bundle come from
+# the same mutable release, so without pinning the signer, an attacker could
+# supply a bundle validly signed by their own workflow. Those flags require
+# the certificate to chain to Kingfisher's own release workflow.
+#
+# --source-ref binds the attestation to the requested release. Without it,
+# assets from an older release carry an equally valid signature, and swapping
+# them in at this URL would quietly downgrade the scanner to a smaller rule
+# set. Releases from v2.10.0 onward sign from their version tag (earlier ones
+# signed from refs/heads/main), so this action requires 2.10.0 or later.
+#
+# Usage:
+#   - uses: ./.github/actions/install-kingfisher
+#     with:
+#       version: "2.10.0"
+
+name: Install Kingfisher
+description: Download, verify, and install Kingfisher with Sigstore provenance checking
+
+inputs:
+  version:
+    description: Kingfisher version to install (without v prefix)
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Download and Verify Kingfisher (${{ inputs.version }})
+      shell: bash
+      env:
+        # `gh attestation verify` reads GH_TOKEN from the environment. Unrelated
+        # to persist-credentials on the checkout; gh never uses the git
+        # credential helper.
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        set -euo pipefail
+
+        RELEASE_URL="https://github.com/mongodb/kingfisher/releases/download/v${{ inputs.version }}"
+        TARBALL="kingfisher-linux-x64.tgz"
+        BUNDLE="multiple.intoto.jsonl"
+
+        # -f so an HTTP error page isn't saved as the tarball, which would
+        # otherwise surface later as a confusing tar error.
+        curl -fsSL -o "/tmp/${TARBALL}" "${RELEASE_URL}/${TARBALL}"
+        curl -fsSL -o "/tmp/${BUNDLE}" "${RELEASE_URL}/${BUNDLE}"
+
+        gh attestation verify "/tmp/${TARBALL}" \
+          --bundle "/tmp/${BUNDLE}" \
+          --repo mongodb/kingfisher \
+          --signer-workflow mongodb/kingfisher/.github/workflows/release.yml \
+          --source-ref "refs/tags/v${{ inputs.version }}"
+
+        sudo tar -xzf "/tmp/${TARBALL}" -C /usr/local/bin kingfisher
+        sudo chmod +x /usr/local/bin/kingfisher
+
+        # Housekeeping — runners are ephemeral, but no reason to leave these around
+        rm -f "/tmp/${TARBALL}" "/tmp/${BUNDLE}"
