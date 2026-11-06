@@ -14,14 +14,19 @@ echo "🧹 Post-merge cleanup on main branch..."
 echo "✂️  Pruning deleted remote branches..."
 git fetch --prune
 
-# Delete local branches whose upstream is gone
+# Delete local branches whose upstream is gone. Uses for-each-ref rather than
+# parsing `git branch -vv`, whose `*` and `+` markers push the name out of $1.
 echo "🗑️  Cleaning up merged branches..."
-GONE_BRANCHES=$(git branch -vv | grep ': gone]' | awk '{print $1}' || true)
+GONE_BRANCHES=$(git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads |
+    awk '$2 == "[gone]" {print $1}')
 
 if [ -n "$GONE_BRANCHES" ]; then
     echo "$GONE_BRANCHES" | while read -r branch; do
-        echo "  Deleting: $branch"
-        git branch -D "$branch" 2>/dev/null || true
+        if git branch -D "$branch" >/dev/null 2>&1; then
+            echo "  Deleted: $branch"
+        else
+            echo "  Couldn't delete: $branch (checked out in a worktree?)"
+        fi
     done
     echo "✅ Cleanup complete!"
 else
