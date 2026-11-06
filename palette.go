@@ -221,6 +221,18 @@ func validate(in Input) error {
 			}
 		}
 	}
+	for field, hex := range map[string]string{
+		"background": in.Terminal.Background, "foreground": in.Terminal.Foreground,
+		"cursor": in.Terminal.Cursor, "cursor_text": in.Terminal.CursorText,
+		"selection_bg": in.Terminal.SelectionBg, "selection_fg": in.Terminal.SelectionFg,
+	} {
+		if hex == "" {
+			continue
+		}
+		if err := check("terminal."+field, hex); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

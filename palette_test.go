@@ -76,6 +76,23 @@ func TestRejectsMalformedColors(t *testing.T) {
 	}
 }
 
+func TestRejectsMalformedTerminalFields(t *testing.T) {
+	for field, set := range map[string]func(*TerminalInput){
+		"background":   func(ti *TerminalInput) { ti.Background = "nope" },
+		"foreground":   func(ti *TerminalInput) { ti.Foreground = "nope" },
+		"cursor":       func(ti *TerminalInput) { ti.Cursor = "nope" },
+		"cursor_text":  func(ti *TerminalInput) { ti.CursorText = "nope" },
+		"selection_bg": func(ti *TerminalInput) { ti.SelectionBg = "nope" },
+		"selection_fg": func(ti *TerminalInput) { ti.SelectionFg = "nope" },
+	} {
+		in := macchiato()
+		set(&in.Terminal)
+		if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), "terminal."+field) {
+			t.Errorf("bad %s: err = %v, want one naming terminal.%s", field, err, field)
+		}
+	}
+}
+
 func TestThemeColorsFillTheirSlots(t *testing.T) {
 	out := complete(t, macchiato())
 	want := map[string]string{
