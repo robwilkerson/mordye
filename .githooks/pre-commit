@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+set -e
+
+# Get git root directory and change to it
+GIT_ROOT=$(git rev-parse --show-toplevel)
+cd "$GIT_ROOT"
+
+# Get staged files. The filter's job is to select every status whose path has a
+# blob in the index, and only those: A/C/M/R/T do, D and U do not. T (type
+# change) and R (rename) are easy to leave off and both carry content — swapping
+# a symlink for a real file is a T, and a rename that also edits the file is an
+# R with a similarity score, never an M. Omit either and a commit staging only
+# that kind of change leaves STAGED_FILES empty, takes the [ -z ] early return
+# below, and passes with nothing scanned. Dropping the filter is not an option
+# either: D paths are gone from the index, so checkout-index fails and blocks
+# every commit containing a deletion.
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMRT)
+
+if [ -z "$STAGED_FILES" ]; then
+    exit 0
+fi
+
+# Secrets scanning with Kingfisher (only valid secrets)
+echo "🔍 Scanning $(echo "$STAGED_FILES" | wc -l | tr -d ' ') staged file(s) for secrets..."
+
+# Scan the staged contents, not the working tree. A secret that is staged and
+# then scrubbed from the working tree is still in the commit, but a path-based
+# scan would read the clean version and pass. Materializing the index also hands
+# kingfisher a single directory, so staged filenames containing whitespace or
+# glob characters are scanned intact.
+STAGE_DIR=$(mktemp -d)
+trap 'rm -rf "$STAGE_DIR"' EXIT
+
+if ! git diff --cached --name-only -z --diff-filter=ACMRT |
+    git checkout-index --prefix="$STAGE_DIR/" -z --stdin; then
+    echo ""
+    echo "❌ Could not copy the staged files out for scanning. Commit blocked."
+    exit 1
+fi
+
+# A partial or empty copy would scan clean and look identical to no secrets, so
+# confirm something landed. STAGED_FILES is known non-empty by this point.
+# Matches any entry rather than -type f: checkout-index materializes a mode
+# 120000 entry as a symlink, so a symlink-only commit has nothing of type f and
+# would be blocked here. Kingfisher does not follow symlinks, so that commit
+# correctly scans zero blobs and passes.
+if [ -z "$(find "$STAGE_DIR" -mindepth 1 -print -quit)" ]; then
+    echo ""
+    echo "❌ No staged content was copied out for scanning. Commit blocked."
+    exit 1
+fi
+
+# Check the Successful Validations count rather than the exit code. Kingfisher
+# exits non-zero for unvalidated findings (false positives), which should not
+# block a commit.
+SCAN_OUTPUT=$(kingfisher scan --only-valid "$STAGE_DIR" 2>&1) || true
+# Report repo-relative paths rather than the temporary copy's location. Uses sed
+# rather than ${SCAN_OUTPUT//...} because bash 3.2, still the stock macOS build,
+# mishandles a quoted pattern in that substitution.
+echo "$SCAN_OUTPUT" | sed "s|$STAGE_DIR/||g"
+
+# Discarding the exit code above means an aborted or missing scan looks
+# identical to a clean one, so require the summary before trusting the count.
+# Kingfisher is a documented prerequisite, so blocking here is intended.
+if ! echo "$SCAN_OUTPUT" | grep -q "Successful Validations"; then
+    echo ""
+    echo "❌ Kingfisher produced no scan summary, so nothing was scanned. Commit blocked."
+    echo "💡 Check that kingfisher is installed and runs: kingfisher scan --only-valid ."
+    exit 1
+fi
+
+VALID_COUNT=$(echo "$SCAN_OUTPUT" | grep "Successful Validations" | awk -F': +' '{sum += $2} END {print sum+0}')
+if [ "$VALID_COUNT" -gt 0 ]; then
+    echo ""
+    echo "❌ $VALID_COUNT valid secret(s) detected! Commit blocked."
+    exit 1
+fi
+echo "✅ No valid secrets detected"
+
+# Go formatting
+GO_FILES=$(echo "$STAGED_FILES" | grep -E '\.go$' || true)
+if [ -n "$GO_FILES" ]; then
+    echo "🔧 Formatting Go files..."
+    while IFS= read -r file; do
+        if [ -f "$file" ]; then
+            if ! gofmt -w "$file"; then
+                echo ""
+                echo "❌ gofmt couldn't parse $file. Commit blocked."
+                exit 1
+            fi
+            git add "$file"
+        fi
+    done <<< "$GO_FILES"
+    echo "✅ Go files formatted"
+fi
+
+echo "🎉 Pre-commit checks passed"

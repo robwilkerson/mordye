@@ -37,7 +37,7 @@ breaking; flag it and apply the `👀 Attention` label.
 
 ## Commands
 
-- `just bootstrap`: check the tools a fresh clone needs (idempotent).
+- `just bootstrap`: turn on the git hooks in `.githooks/` and check the tools a fresh clone needs (idempotent).
 - `just check`: formatting, vet, and tests. Run it before calling work done; no CI exists yet (#1).
 - `just build`, `just test`, `just fmt`.
 

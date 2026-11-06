@@ -8,7 +8,7 @@ default:
 # Setup
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Check the tools a fresh clone needs (idempotent - safe to run multiple times)
+# Set up a fresh clone: turn on the git hooks and check the tools (idempotent - safe to run multiple times)
 [group('Setup')]
 bootstrap:
     #!/usr/bin/env bash
@@ -16,10 +16,17 @@ bootstrap:
     echo "🚀 Bootstrapping development environment..."
     echo ""
 
+    # Configure git hooks (idempotent - git config overwrites existing value)
+    echo "🔧 Configuring git hooks..."
+    git config core.hooksPath .githooks
+    echo "✅ Git hooks configured (using .githooks/)"
+    echo ""
+
     # Check required tools
     echo "📋 Checking required tools..."
     MISSING=0
     command -v go >/dev/null 2>&1 || { echo "❌ go not found (https://go.dev/dl, 1.27+)"; MISSING=1; }
+    command -v kingfisher >/dev/null 2>&1 || { echo "❌ kingfisher not found (https://github.com/mongodb/kingfisher) - the pre-commit hook needs it"; MISSING=1; }
     [ $MISSING -eq 0 ] && echo "✅ All required tools found ($(go env GOVERSION))"
     echo ""
 
