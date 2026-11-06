@@ -1,0 +1,48 @@
+#
+# Runs Renovate to update pinned dependency versions. Scheduled early Saturday
+# mornings to match bootc-fedora, plus manual trigger. What Renovate manages is
+# defined in renovate.json.
+#
+# Renovate automerges on the run AFTER it sees green checks, so a second pass
+# two hours later merges whatever went green since the first, rather than
+# leaving it for next week.
+#
+# Prerequisites:
+#   - RENOVATE_TOKEN secret: a GitHub PAT (classic) with `repo` and `workflow`
+#     scopes, or a fine-grained PAT with Contents + Pull Requests + Workflows
+#     read/write. PRs opened with GITHUB_TOKEN don't trigger CI, so a PAT is
+#     required.
+#
+
+name: 🔄 Update Dependencies
+
+on:
+  schedule:
+    - cron: '0 7 * * 6' # Saturdays, 3 AM ET (2 AM during EST)
+    - cron: '0 9 * * 6' # Follow-up automerge pass, 5 AM ET (4 AM during EST)
+  workflow_dispatch: # Manual trigger
+
+# Renovate uses RENOVATE_TOKEN (PAT), not GITHUB_TOKEN, so the workflow needs
+# no default token permissions.
+permissions: {}
+
+# Scheduled runs can start late; queue a pass rather than racing one still
+# running.
+concurrency:
+  group: update-dependencies
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: renovate/renovate:44@sha256:52454eae0bdcb51ddfecc39035e0fc2d97172751124049144e89d44343f6ae81
+    steps:
+      - name: Run Renovate
+        env:
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          RENOVATE_PLATFORM: github
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          LOG_LEVEL: ${{ github.event_name == 'workflow_dispatch' && 'debug' || 'info' }}
+        run: renovate
