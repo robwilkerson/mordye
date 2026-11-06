@@ -39,8 +39,8 @@ reviews:
         nothing about any source. Review for:
         - The output is a contract. Downstream templates read exactly the
           fields the README lists (15 interface roles, 22 terminal fields).
-          Adding, removing, or renaming a field is a breaking change and must
-          bump the output's `version`.
+          Flag any change to the output's shape: a field added, removed, or
+          renamed. Which changes bump `version` is still undecided (#13).
         - A color the input defines is used as-is. Flag anything that shifts,
           clamps, or blends a defined color.
         - A generated color keeps its usual hue at the palette's own chroma and
