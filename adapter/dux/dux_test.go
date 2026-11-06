@@ -123,7 +123,7 @@ func TestUnsafeThemeIDIsRejected(t *testing.T) {
 	if err == nil {
 		_, err = mordye.Complete(in)
 	}
-	if err == nil || !strings.Contains(err.Error(), "name") {
+	if err == nil || !strings.Contains(err.Error(), `name "nord\"\n[shell]"`) {
 		t.Errorf("err = %v, want one rejecting the theme's name", err)
 	}
 }

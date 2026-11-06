@@ -69,10 +69,10 @@ func TestRejectsUnknownRoles(t *testing.T) {
 }
 
 func TestRejectsUnsafeNames(t *testing.T) {
-	for _, name := range []string{"x\n[shell]", `x"y`, "x\x1b]0;pwn\x07", "x y", "$(id)"} {
+	for _, name := range []string{"x\n[shell]", `x"y`, "x\x1b]0;pwn\x07", "x y", "$(id)", "..", ".", "-rf"} {
 		in := macchiato()
 		in.Name = name
-		if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), "name") {
+		if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), nameRule) {
 			t.Errorf("name %q: err = %v, want one rejecting the name", name, err)
 		}
 	}
@@ -81,7 +81,7 @@ func TestRejectsUnsafeNames(t *testing.T) {
 func TestRejectsUnsafeSwatchNames(t *testing.T) {
 	in := macchiato()
 	in.Swatches["a$(id)"] = "#ffffff"
-	if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), "swatch name") {
+	if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), "swatch name") || !strings.Contains(err.Error(), nameRule) {
 		t.Errorf("err = %v, want one rejecting the swatch name", err)
 	}
 }
