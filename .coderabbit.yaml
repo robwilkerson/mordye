@@ -91,6 +91,10 @@ reviews:
     drafts: true
     base_branches:
       - "main"
+    # Renovate PRs are mechanical dependency updates; CI still validates them.
+    # renovate.json puts this label on every PR it opens.
+    labels:
+      - "!🤖 Renovate"
 
   tools:
     golangci-lint:

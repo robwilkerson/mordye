@@ -5,6 +5,7 @@
   "schedule": ["on the 1st day of the month"],
   "enabledManagers": ["github-actions", "gomod"],
   "configMigration": true,
+  "labels": ["🤖 Renovate"],
   "automergeStrategy": "squash",
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
