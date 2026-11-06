@@ -1,0 +1,37 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices", "helpers:pinGitHubActionDigests"],
+  "timezone": "America/New_York",
+  "schedule": ["on the 1st day of the month"],
+  "enabledManagers": ["github-actions", "gomod"],
+  "configMigration": true,
+  "automergeStrategy": "squash",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "schedule": ["at any time"],
+    "addLabels": ["🎯 High"]
+  },
+  "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
+  "prBodyColumns": ["Package", "Type", "Update", "Change"],
+  "prBodyDefinitions": {
+    "Package": "**{{{depNameLinked}}}**",
+    "Type": "{{{updateType}}}",
+    "Update": "{{{displayFrom}}} → {{{displayTo}}}",
+    "Change": "{{#if changelogUrl}}[Changelog]({{{changelogUrl}}}){{/if}}"
+  },
+  "fetchChangeLogs": "pr",
+  "packageRules": [
+    {
+      "description": "Self-merge non-breaking workflow updates once CI passes, grouped into one PR. The Go toolchain is deliberately excluded: a new Go can change the binary, so it always gets a human look",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest"],
+      "groupName": "non-breaking workflow updates",
+      "automerge": true
+    },
+    {
+      "description": "Highlight breaking changes with a label",
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["👀 Attention"]
+    }
+  ]
+}

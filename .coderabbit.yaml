@@ -1,0 +1,112 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
+language: "en-US"
+tone_instructions: "Be direct and concise. Focus on correctness, security, architecture, idioms, and consistency."
+early_access: false
+
+reviews:
+  profile: "chill"
+  high_level_summary: true
+  high_level_summary_in_walkthrough: true
+  high_level_summary_instructions: >-
+    Create concise release notes as a bullet-point list, but only if the
+    original PR body is insufficient or inaccurate. Extend or clarify the
+    PR body content; don't duplicate it.
+  collapse_walkthrough: true
+  changed_files_summary: false
+  sequence_diagrams: false
+  request_changes_workflow: false
+  commit_status: true
+  review_status: false
+  poem: false
+  assess_linked_issues: true
+  related_issues: true
+  related_prs: true
+  suggested_labels: false
+  suggested_reviewers: false
+
+  path_filters:
+    # Upstream theme files, copied unchanged and credited in the README
+    - "!adapter/dux/testdata/**"
+
+  path_instructions:
+    - path: "*.go"
+      instructions: |
+        The generator: it fills a sparse palette into a complete one and knows
+        nothing about any source. Review for:
+        - The output is a contract. Downstream templates read exactly the
+          fields the README lists (15 interface roles, 22 terminal fields).
+          Adding, removing, or renaming a field is a breaking change and must
+          bump the output's `version`.
+        - A color the input defines is used as-is. Flag anything that shifts,
+          clamps, or blends a defined color.
+        - A generated color keeps its usual hue at the palette's own chroma and
+          lightness. Flag anything that pulls hues toward the accent.
+        - The accent moves only `primary` and `secondary`. Flag any path where
+          changing the accent changes another field.
+        - Every output field records its origin in `sources`. A field with no
+          entry, or a wrong one, is a finding.
+        - Output must be deterministic: the same input yields byte-identical
+          output, so no map-order or float-formatting drift.
+        - Standard library only. mordye ships as one binary with no
+          dependencies.
+    - path: "adapter/**/*.go"
+      instructions: |
+        Source adapters translate one source's theme format into the
+        generator's input. Review for:
+        - An adapter reads only the files named on the command line. It never
+          searches for files, reads environment variables, or assumes a home
+          directory; finding files is the caller's job.
+        - Source-specific knowledge stays in its adapter. Flag any of it
+          leaking into the generator.
+        - A malformed or unexpected source file fails with a clear error, never
+          a silently partial palette.
+        - New behavior is tested against the real theme files in `testdata/`,
+          not hand-built approximations.
+    - path: "cmd/**/*.go"
+      instructions: |
+        The CLI. Review for:
+        - Output goes to stdout and diagnostics to stderr, so the result can be
+          piped or redirected safely.
+        - Errors exit non-zero. A caller must never get a partial palette on
+          stdout with a zero exit.
+        - Flags and subcommands are a public interface; renaming one breaks
+          callers.
+    - path: "README.md"
+      instructions: |
+        User-facing documentation. Review for accuracy against the code:
+        the field counts, the adapter table, and the command-line examples must
+        match what mordye actually does.
+
+  auto_review:
+    enabled: true
+    auto_incremental_review: true
+    ignore_title_keywords:
+      - "WIP"
+      - "DO NOT MERGE"
+    # PRs open as drafts so the bot reviews before humans are requested.
+    drafts: true
+    base_branches:
+      - "main"
+    # Renovate PRs are mechanical dependency updates; CI still validates them.
+    ignore_usernames:
+      - "renovate[bot]"
+
+  tools:
+    golangci-lint:
+      enabled: true
+    markdownlint:
+      enabled: true
+    yamllint:
+      enabled: true
+    actionlint:
+      enabled: true
+    github-checks:
+      enabled: true
+      timeout_ms: 90000
+
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
