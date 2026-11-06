@@ -1,11 +1,11 @@
 #
-# Runs Renovate to update pinned dependency versions. What it manages and when
-# is defined in renovate.json; these crons only decide when it gets to look.
+# Runs Renovate to update pinned dependency versions. Scheduled early Saturday
+# mornings to match bootc-fedora, plus manual trigger. What Renovate manages is
+# defined in renovate.json.
 #
-#   - Every Monday: the vulnerability schedule matches, so CVE PRs open
-#   - 1st of the month: the routine schedule matches, so routine PRs open
-#   - One hour after each: a follow-up pass that automerges any PR whose
-#     checks went green since the opening run
+# Renovate automerges on the run AFTER it sees green checks, so a second pass
+# two hours later merges whatever went green since the first, rather than
+# leaving it for next week.
 #
 # Prerequisites:
 #   - RENOVATE_TOKEN secret: a GitHub PAT (classic) with `repo` and `workflow`
@@ -18,20 +18,16 @@ name: 🔄 Update Dependencies
 
 on:
   schedule:
-    - cron: '30 9 * * 1' # Mondays, 5:30 AM ET (4:30 AM during EST)
-    - cron: '30 9 1 * *' # 1st of the month, same time
-    # Renovate automerges on the run AFTER it sees green checks, so without
-    # these the merge would wait for the next scheduled run.
-    - cron: '30 10 * * 1'
-    - cron: '30 10 1 * *'
+    - cron: '0 7 * * 6' # Saturdays, 3 AM ET (2 AM during EST)
+    - cron: '0 9 * * 6' # Follow-up automerge pass, 5 AM ET (4 AM during EST)
   workflow_dispatch: # Manual trigger
 
 # Renovate uses RENOVATE_TOKEN (PAT), not GITHUB_TOKEN, so the workflow needs
 # no default token permissions.
 permissions: {}
 
-# When the 1st lands on a Monday, two crons match at once. Queue the second
-# rather than racing the first.
+# Scheduled runs can start late; queue a pass rather than racing one still
+# running.
 concurrency:
   group: update-dependencies
   cancel-in-progress: false
@@ -49,7 +45,4 @@ jobs:
           RENOVATE_PLATFORM: github
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           LOG_LEVEL: ${{ github.event_name == 'workflow_dispatch' && 'debug' || 'info' }}
-          # Manual runs null out renovate.json's schedule so you can test on
-          # demand. Scheduled runs pass {} (a no-op) and keep its gating.
-          RENOVATE_FORCE: ${{ github.event_name == 'workflow_dispatch' && '{"schedule":null}' || '{}' }}
         run: renovate

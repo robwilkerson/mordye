@@ -2,14 +2,12 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices", "helpers:pinGitHubActionDigests"],
   "timezone": "America/New_York",
-  "schedule": ["on the 1st day of the month"],
   "enabledManagers": ["github-actions", "gomod", "custom.regex"],
   "configMigration": true,
   "labels": ["🤖 Renovate"],
   "automergeStrategy": "squash",
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
-    "schedule": ["on Monday"],
     "addLabels": ["🎯 High"]
   },
   "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
