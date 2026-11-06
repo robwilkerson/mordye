@@ -51,6 +51,17 @@ type TerminalInput struct {
 	Bright      map[string]string `json:"bright,omitempty"`
 }
 
+// scalars returns the terminal fields that aren't ANSI slots, keyed by output
+// name. validate and passThrough share it, so a field can't pass through
+// without being checked.
+func (t TerminalInput) scalars() map[string]string {
+	return map[string]string{
+		"background": t.Background, "foreground": t.Foreground,
+		"cursor": t.Cursor, "cursor_text": t.CursorText,
+		"selection_bg": t.SelectionBg, "selection_fg": t.SelectionFg,
+	}
+}
+
 // Output is a complete palette. Every field is always set.
 type Output struct {
 	Version  int      `json:"version"`
@@ -221,11 +232,7 @@ func validate(in Input) error {
 			}
 		}
 	}
-	for field, hex := range map[string]string{
-		"background": in.Terminal.Background, "foreground": in.Terminal.Foreground,
-		"cursor": in.Terminal.Cursor, "cursor_text": in.Terminal.CursorText,
-		"selection_bg": in.Terminal.SelectionBg, "selection_fg": in.Terminal.SelectionFg,
-	} {
+	for field, hex := range in.Terminal.scalars() {
 		if hex == "" {
 			continue
 		}
@@ -454,10 +461,7 @@ func (p *builder) fillTerminalExtras() {
 // passThrough applies the source's own terminal colors over everything else.
 func (p *builder) passThrough() {
 	t := p.in.Terminal
-	for field, hex := range map[string]string{
-		"background": t.Background, "foreground": t.Foreground, "cursor": t.Cursor,
-		"cursor_text": t.CursorText, "selection_bg": t.SelectionBg, "selection_fg": t.SelectionFg,
-	} {
+	for field, hex := range t.scalars() {
 		if hex != "" {
 			p.set(field, hex, "terminal")
 		}

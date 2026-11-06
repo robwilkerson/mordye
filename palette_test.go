@@ -87,7 +87,7 @@ func TestRejectsMalformedTerminalFields(t *testing.T) {
 	} {
 		in := macchiato()
 		set(&in.Terminal)
-		if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), "terminal."+field) {
+		if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), "terminal."+field+":") {
 			t.Errorf("bad %s: err = %v, want one naming terminal.%s", field, err, field)
 		}
 	}
