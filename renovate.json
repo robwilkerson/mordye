@@ -3,7 +3,7 @@
   "extends": ["config:best-practices", "helpers:pinGitHubActionDigests"],
   "timezone": "America/New_York",
   "schedule": ["on the 1st day of the month"],
-  "enabledManagers": ["github-actions", "gomod"],
+  "enabledManagers": ["github-actions", "gomod", "custom.regex"],
   "configMigration": true,
   "labels": ["🤖 Renovate"],
   "automergeStrategy": "squash",
@@ -21,10 +21,21 @@
     "Change": "{{#if changelogUrl}}[Changelog]({{{changelogUrl}}}){{/if}}"
   },
   "fetchChangeLogs": "pr",
+  "customManagers": [
+    {
+      "description": "Track tool pins set as env vars in workflows, such as KINGFISHER_VERSION. Datasource and depName come from the `# renovate:` comment above each one",
+      "customType": "regex",
+      "managerFilePatterns": ["/\\.github/(actions|workflows)/.+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>[a-z-]+?) depName=(?<depName>[^\\s]+?)\\n\\s+[A-Z_]+:\\s*(?<currentValue>[^\\s]+)"
+      ],
+      "extractVersionTemplate": "^v?(?<version>.+)$"
+    }
+  ],
   "packageRules": [
     {
       "description": "Self-merge non-breaking workflow updates once CI passes, grouped into one PR. The Go toolchain is deliberately excluded: a new Go can change the binary, so it always gets a human look",
-      "matchManagers": ["github-actions"],
+      "matchManagers": ["github-actions", "custom.regex"],
       "matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest"],
       "groupName": "non-breaking workflow updates",
       "automerge": true
