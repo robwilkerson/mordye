@@ -91,9 +91,6 @@ reviews:
     drafts: true
     base_branches:
       - "main"
-    # Renovate PRs are mechanical dependency updates; CI still validates them.
-    ignore_usernames:
-      - "renovate[bot]"
 
   tools:
     golangci-lint:

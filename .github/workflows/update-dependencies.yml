@@ -1,0 +1,55 @@
+#
+# Runs Renovate to update pinned dependency versions. What it manages and when
+# is defined in renovate.json; these crons only decide when it gets to look.
+#
+#   - Every Monday: the vulnerability schedule matches, so CVE PRs open
+#   - 1st of the month: the routine schedule matches, so routine PRs open
+#   - One hour after each: a follow-up pass that automerges any PR whose
+#     checks went green since the opening run
+#
+# Prerequisites:
+#   - RENOVATE_TOKEN secret: a GitHub PAT (classic) with `repo` and `workflow`
+#     scopes, or a fine-grained PAT with Contents + Pull Requests + Workflows
+#     read/write. PRs opened with GITHUB_TOKEN don't trigger CI, so a PAT is
+#     required.
+#
+
+name: 🔄 Update Dependencies
+
+on:
+  schedule:
+    - cron: '30 9 * * 1' # Mondays, 5:30 AM ET (4:30 AM during EST)
+    - cron: '30 9 1 * *' # 1st of the month, same time
+    # Renovate automerges on the run AFTER it sees green checks, so without
+    # these the merge would wait for the next scheduled run.
+    - cron: '30 10 * * 1'
+    - cron: '30 10 1 * *'
+  workflow_dispatch: # Manual trigger
+
+# Renovate uses RENOVATE_TOKEN (PAT), not GITHUB_TOKEN, so the workflow needs
+# no default token permissions.
+permissions: {}
+
+# When the 1st lands on a Monday, two crons match at once. Queue the second
+# rather than racing the first.
+concurrency:
+  group: update-dependencies
+  cancel-in-progress: false
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    container:
+      image: renovate/renovate:44@sha256:52454eae0bdcb51ddfecc39035e0fc2d97172751124049144e89d44343f6ae81
+    steps:
+      - name: Run Renovate
+        env:
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+          RENOVATE_PLATFORM: github
+          RENOVATE_REPOSITORIES: ${{ github.repository }}
+          LOG_LEVEL: ${{ github.event_name == 'workflow_dispatch' && 'debug' || 'info' }}
+          # Manual runs null out renovate.json's schedule so you can test on
+          # demand. Scheduled runs pass {} (a no-op) and keep its gating.
+          RENOVATE_FORCE: ${{ github.event_name == 'workflow_dispatch' && '{"schedule":null}' || '{}' }}
+        run: renovate

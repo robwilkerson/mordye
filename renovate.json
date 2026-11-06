@@ -8,7 +8,7 @@
   "automergeStrategy": "squash",
   "osvVulnerabilityAlerts": true,
   "vulnerabilityAlerts": {
-    "schedule": ["at any time"],
+    "schedule": ["on Monday"],
     "addLabels": ["🎯 High"]
   },
   "prBodyTemplate": "{{{header}}}{{{table}}}{{{notes}}}{{{changelogs}}}{{{configDescription}}}{{{controls}}}{{{footer}}}",
