@@ -1,0 +1,73 @@
+name: 🏗️ Continuous Integration
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      # renovate: datasource=github-releases depName=mongodb/kingfisher
+      KINGFISHER_VERSION: 2.14.0
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Kingfisher
+        uses: ./.github/actions/install-kingfisher
+        with:
+          version: ${{ env.KINGFISHER_VERSION }}
+
+      - name: Scan for Secrets
+        run: |
+          set +e
+          OUTPUT=$(kingfisher scan --only-valid --exclude .git . 2>&1)
+
+          SUMMARY=$(echo "$OUTPUT" | awk '/^=/{flag=1} flag')
+          echo "$SUMMARY"
+          {
+            echo "### 🔍 Secrets Scan Summary"
+            echo '```'
+            echo "$SUMMARY"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # `set +e` above means an aborted scan looks identical to a clean one,
+          # so require the summary before trusting the count.
+          if ! echo "$OUTPUT" | grep -q "Successful Validations"; then
+            echo "$OUTPUT"
+            echo "::error::Kingfisher produced no scan summary; nothing was scanned"
+            exit 1
+          fi
+
+          # Only fail on successfully validated (active) secrets.
+          VALID_COUNT=$(echo "$OUTPUT" | grep "Successful Validations" | awk -F': +' '{sum += $2} END {print sum+0}')
+          if [ "$VALID_COUNT" -gt 0 ]; then
+            echo "::error::$VALID_COUNT active secret(s) detected in repository"
+            exit 1
+          fi
+
+  check:
+    name: Format, Vet & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Not gofmt-formatted:"
+            echo "$unformatted"
+            exit 1
+          fi
+      - run: go vet ./...
+      - run: go test ./...
