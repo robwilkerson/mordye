@@ -61,7 +61,6 @@ awk -v block="$block" '
 ' CHANGELOG.md > CHANGELOG.md.new
 mv CHANGELOG.md.new CHANGELOG.md
 
-rm -f .git/index.lock && sleep 0.5
 git add CHANGELOG.md
 git commit -m "docs: cut $tag"
 git tag -a "$tag" -m "$tag"
