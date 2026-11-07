@@ -57,6 +57,17 @@ func TestDuxNeedsATheme(t *testing.T) {
 	}
 }
 
+func TestVersionFlagPrintsTheBuildVersion(t *testing.T) {
+	var out bytes.Buffer
+	if err := dispatch([]string{"--version"}, strings.NewReader(""), &out); err != nil {
+		t.Fatal(err)
+	}
+	name, version, ok := strings.Cut(strings.TrimSpace(out.String()), " ")
+	if !ok || name != "mordye" || version == "" {
+		t.Errorf("output %q, want \"mordye <version>\"", out.String())
+	}
+}
+
 func TestUnknownSubcommandIsAnError(t *testing.T) {
 	err := dispatch([]string{"noctalia"}, strings.NewReader(""), &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "noctalia") {
