@@ -12,6 +12,10 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
+## 0.1.0
+
+Released 2026-11-07.
+
 - **First release.** Mordye completes a sparse theme palette into 15 interface
   roles and 22 terminal fields. A color the theme defines comes through
   unchanged, and a missing one is generated at its usual hue, at the palette's
