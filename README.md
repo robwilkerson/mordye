@@ -61,10 +61,10 @@ The math happens in [OKLCH](https://bottosson.github.io/posts/oklab/), which sep
 
 ### Surfaces
 
-`surface_container`, `surface_container_high`, and `surface_container_highest` form a ladder, each a step lighter than the one below. A missing rung is built from the rungs the theme defines:
+`surface_container`, `surface_container_high`, and `surface_container_highest` form a ladder, each a step beyond the one below (lighter, in a dark theme). A missing rung is built from the rungs the theme defines:
 
 - **Tint:** it takes the hue and chroma of the nearest defined rung, so a slate theme stays slate.
-- **Lightness:** it sits the theme's own spacing away, the average gap between the rungs the theme defines.
+- **Lightness:** it sits the theme's own spacing away, in the theme's own direction: the average gap between the rungs the theme defines.
 
 A theme that defines one rung gives no spacing to copy, so Mordye uses Catppuccin Macchiato's. A theme that defines none gets the whole ladder generated, along with any missing `background`, `surface`, or `outline`, as near-grays at fixed lightness with a hint of the theme's outline (or text) tint.
 
