@@ -9,15 +9,17 @@ on:
     # does the real format check.
     tags: ['v*']
 
-permissions:
-  contents: write # create the release
-  id-token: write # sign the provenance attestations
-  attestations: write # store them
+# Each job asks for what it needs.
+permissions: {}
 
 jobs:
   release:
     name: Build & Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the release
+      id-token: write # sign the provenance attestations
+      attestations: write # store them
     timeout-minutes: 15
     env:
       TAG: ${{ github.ref_name }}
