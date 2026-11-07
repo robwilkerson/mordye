@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+#
+# Builds and publishes a release when .github/workflows/release.yml runs on a
+# v* tag. Each publishing channel is one block here, so adding one later
+# (Homebrew tap, deb, nix) needs no workflow changes.
+version: 2
+
+project_name: mordye
+
+builds:
+  - id: mordye
+    main: ./cmd/mordye
+    binary: mordye
+    env:
+      - CGO_ENABLED=0
+    goos: [linux]
+    goarch: [amd64, arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+# Asset names use Go's architecture names (mordye_1.2.3_linux_amd64.rpm), so a
+# Containerfile can drop in ${TARGETARCH} without mapping it.
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files: [LICENSE, README.md, CHANGELOG.md]
+
+nfpms:
+  - package_name: mordye
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    formats: [rpm]
+    bindir: /usr/bin
+    vendor: Rob Wilkerson
+    maintainer: Rob Wilkerson <git@manicunicorn.com>
+    homepage: https://github.com/robwilkerson/mordye
+    description: Completes a sparse theme palette into every interface role and terminal color an app needs.
+    license: MIT
+
+checksum:
+  name_template: checksums.txt
+
+# The release notes are the version's CHANGELOG.md section, passed in by the
+# workflow, so GoReleaser's commit-list changelog stays off.
+changelog:
+  disable: true
+
+release:
+  # -rc and other prerelease tags publish as prereleases, which Renovate
+  # ignores by default.
+  prerelease: auto

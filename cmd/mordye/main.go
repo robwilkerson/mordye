@@ -35,7 +35,7 @@ func dispatch(args []string, stdin io.Reader, w io.Writer) error {
 	}
 	switch args[0] {
 	case "--version":
-		_, err := fmt.Fprintln(w, "mordye", version())
+		_, err := fmt.Fprintln(w, "mordye", buildVersion())
 		return err
 	case "dux":
 		return runDux(args[1:], w)
@@ -44,9 +44,15 @@ func dispatch(args []string, stdin io.Reader, w io.Writer) error {
 	}
 }
 
-// version is the module version Go embeds at build time: the release tag for
-// a build of a tagged commit, and "(devel)" for anything else.
-func version() string {
+// version is stamped by the release build (-ldflags "-X main.version=1.2.3").
+var version string
+
+// buildVersion is the stamped version, else the module version Go embeds at
+// build time (the tag, for `go install` of a release), else "(devel)".
+func buildVersion() string {
+	if version != "" {
+		return version
+	}
 	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" {
 		return bi.Main.Version
 	}

@@ -68,6 +68,18 @@ func TestVersionFlagPrintsTheBuildVersion(t *testing.T) {
 	}
 }
 
+func TestVersionFlagPrefersTheStampedVersion(t *testing.T) {
+	defer func(v string) { version = v }(version)
+	version = "1.2.3"
+	var out bytes.Buffer
+	if err := dispatch([]string{"--version"}, strings.NewReader(""), &out); err != nil {
+		t.Fatal(err)
+	}
+	if got := strings.TrimSpace(out.String()); got != "mordye 1.2.3" {
+		t.Errorf("output %q, want the stamped \"mordye 1.2.3\"", got)
+	}
+}
+
 func TestUnknownSubcommandIsAnError(t *testing.T) {
 	err := dispatch([]string{"noctalia"}, strings.NewReader(""), &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "noctalia") {

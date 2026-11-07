@@ -29,8 +29,9 @@ notes=$(awk '/^## Unreleased$/{p=1;next} p&&/^## /{exit} p' CHANGELOG.md)
 [[ -n "${notes//[[:space:]]/}" ]] \
     || { echo "error: ## Unreleased is empty; nothing to ship" >&2; exit 1; }
 
-# Bumps count from the newest vX.Y.Z tag, or from 0.0.0 before the first.
-latest=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname | head -n1)
+# Bumps count from the newest stable vX.Y.Z tag, or from 0.0.0 before the
+# first. Prerelease tags (v0.2.0-rc.1) don't count, so they're filtered out.
+latest=$(git tag --list 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n1 || true)
 IFS=. read -r major minor patch <<< "${latest#v}"
 major=${major:-0} minor=${minor:-0} patch=${patch:-0}
 case "$bump" in

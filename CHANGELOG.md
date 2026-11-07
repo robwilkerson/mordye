@@ -24,5 +24,6 @@ moves them under a version heading when it cuts the release.
   spacing and tint.
 - **Strict input.** Mordye rejects a color that isn't `#rrggbb` and a name that
   could inject lines into generated config.
-- **Linux binaries** for x86_64 and ARM64 (including Asahi), with SHA-256
-  checksums and build provenance. `mordye --version` reports the release.
+- **Linux packages** for x86_64 and ARM64 (including Asahi): an RPM that
+  installs `/usr/bin/mordye`, and a `tar.gz` archive, with checksums and build
+  provenance. `mordye --version` reports the release.
