@@ -1,6 +1,9 @@
 # The binary `go build ./cmd/mordye` drops in the repo root.
 /mordye
 
+# GoReleaser builds into dist/, and refuses to release from a dirty worktree.
+/dist/
+
 # Per-developer Claude Code state: session notes and personal setting overrides.
 SESSION_CONTEXT.md
 .claude/settings.local.json
