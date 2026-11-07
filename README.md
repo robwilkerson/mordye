@@ -61,6 +61,22 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 
 The test fixtures in `adapter/dux/testdata/` are theme files from the [Dux plugin registry](https://github.com/duxlabs-dev/dux-plugin-registry), copied unchanged so the adapter is tested against real themes. They are the work of their authors, and the palettes they carry belong to their own projects: [Catppuccin](https://catppuccin.com), [Dracula](https://draculatheme.com), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Nord](https://www.nordtheme.com), [Rosé Pine](https://rosepinetheme.com), and [Tokyo Night](https://github.com/folke/tokyonight.nvim).
 
+## About the Robot
+
+Yes, an LLM helped write this. So did an editor, a compiler, a linter,
+autocomplete, and a number of other tools. It's just a tool. One that "talks"
+back, but still a tool. And it helps me salvage some of my weekend. It types
+faster than I do, reads faster than I do, and, much to my chagrin, knows more
+than I do.
+
+Every line here was read, discussed, sometimes argued, and ultimately signed
+off by a human (me). I theme my own desktop with it every day and live with the
+result.
+
+The AI doesn't get the credit and it doesn't get the blame. If something here
+is broken, sloppy, or wrong, that's 100% on me and I welcome the feedback. A
+bug report or a PR is always appreciated.
+
 ## License
 
 [MIT](LICENSE). The test fixtures are credited above and are not covered by it.
