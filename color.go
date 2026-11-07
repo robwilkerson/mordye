@@ -10,7 +10,7 @@ import (
 type rgb struct{ R, G, B float64 }
 
 // lch is a color in OKLCH: perceptual lightness (0-1), chroma, and hue in
-// degrees. OKLCH is where mordye does its color math, because equal steps in
+// degrees. OKLCH is where Mordye does its color math, because equal steps in
 // it look equal: a generated yellow at the palette's lightness reads as light
 // as the palette's own colors, which plain RGB or HSL doesn't promise.
 // https://bottosson.github.io/posts/oklab/

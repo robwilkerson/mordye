@@ -1,5 +1,5 @@
 // Package dux translates a Dux Shell (formerly DankMaterialShell) theme into
-// mordye input.
+// Mordye input.
 //
 // It takes file contents, never paths: the caller reads Dux's settings and
 // the theme file those settings select, and hands both over. Settings carry
@@ -45,7 +45,7 @@ type variants struct {
 	Accents []map[string]any `json:"accents"`
 }
 
-// roles maps Dux theme roles to mordye's. The two text roles are handled
+// roles maps Dux theme roles to Mordye's. The two text roles are handled
 // separately; see textRoles.
 var roles = map[string]string{
 	"primary": "primary", "primaryText": "on_primary", "secondary": "secondary",
@@ -63,7 +63,7 @@ var roles = map[string]string{
 // color can still fill a terminal slot.
 var textRoles = []string{"backgroundText", "surfaceText"}
 
-// Parse translates Dux settings and the theme file they select into mordye
+// Parse translates Dux settings and the theme file they select into Mordye
 // input. Settings may be nil, in which case the theme's defaults apply.
 func Parse(settings, theme []byte) (mordye.Input, error) {
 	var t themeFile

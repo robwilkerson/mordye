@@ -1,12 +1,12 @@
-# mordye
+# <img src="assets/logo.svg" alt="" height="48" align="top"> Mordye
 
 [![Continuous Integration](https://github.com/robwilkerson/mordye/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/robwilkerson/mordye/actions/workflows/ci.yml)
 
-Give mordye a partial color palette and it returns a complete one: every interface role an app needs, plus all 16 terminal colors.
+Give Mordye a partial color palette and it returns a complete one: every interface role an app needs, plus all 16 terminal colors.
 
 Desktop shells and theme tools describe palettes in Material roles (`primary`, `surface`, `error`, and so on), and most themes fill in only some of them. Terminals need 16 distinct colors, and few themes define them all. Tools that fill the gaps usually shift every hue toward the accent, so "blue" and "cyan" turn into shades of your accent color.
 
-mordye fills the gaps without bending the palette:
+Mordye fills the gaps without bending the palette:
 
 - **A color the theme defines is used as-is.** Its red is your red, and its yellow is your yellow.
 - **A missing color is generated at its usual hue**, at the palette's own chroma and lightness, so a muted theme gets a muted green and a pastel theme a pastel one.
@@ -18,11 +18,11 @@ mordye fills the gaps without bending the palette:
 source files ──► adapter ──► generator ──► complete palette ──► your app templates
 ```
 
-- **Adapters** translate one source's theme format for the generator. They are built in, so mordye is one binary with no dependencies.
+- **Adapters** translate one source's theme format for the generator. They are built in, so Mordye is one binary with no dependencies.
 - **The generator** fills the gaps. It knows nothing about any particular source.
 - **Your templates** read the complete palette, which always has the same fields.
 
-mordye reads only the files you name on its command line. Finding them, such as where a source keeps its settings, is the caller's job:
+Mordye reads only the files you name on its command line. Finding them, such as where a source keeps its settings, is the caller's job:
 
 ```bash
 mordye dux --settings ~/.config/dms/settings.json \
@@ -44,7 +44,7 @@ The input is a sparse palette:
 - **`accent`:** on a theme with an accent menu, the swatch you chose. It keeps `primary` and `secondary` out of the terminal colors, so changing the accent never moves them.
 - **`terminal`:** any terminal colors the source already has. These pass through unchanged.
 
-The palette's `name` and every swatch name must start with an ASCII letter or digit, then use only letters, digits, `.`, `_`, and `-`. Names come from theme files and end up in generated config, so mordye rejects anything else rather than pass it along.
+The palette's `name` and every swatch name must start with an ASCII letter or digit, then use only letters, digits, `.`, `_`, and `-`. Names come from theme files and end up in generated config, so Mordye rejects anything else rather than pass it along.
 
 The output always has the same 37 fields:
 
@@ -67,4 +67,4 @@ The test fixtures in `adapter/dux/testdata/` are theme files from the [Dux plugi
 
 ## The Name
 
-A mordant is what dyers use to fix color into fabric. It binds the dye so the colors hold and sit together evenly. mordye is mordant plus dye, and it reads as "more dye," which is the job: adding the colors a palette is missing, and making them hold together with the ones already there.
+A mordant is what dyers use to fix color into fabric. It binds the dye so the colors hold and sit together evenly. Mordye is mordant plus dye, and it reads as "more dye," which is the job: adding the colors a palette is missing, and making them hold together with the ones already there.

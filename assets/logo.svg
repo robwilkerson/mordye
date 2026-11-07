@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="6 6 84 84" role="img" aria-labelledby="title">
+  <title id="title">Mordye</title>
+  <!-- A ribbon M that enters as one color and leaves as four, ending in a drop of dye.
+       Every color shares one OKLCH lightness (0.67) and chroma (0.15). Each fold is a
+       real cutout, so the mark works on any background. -->
+  <defs>
+    <mask id="mordye-s0" maskUnits="userSpaceOnUse" x="0" y="0" width="96" height="96"><path d="M17 79 L17 17" stroke="#fff" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M17 17 L47.5 55" stroke="#000" stroke-width="20" stroke-linecap="round" fill="none"/><path d="M47.5 55 L78 17" stroke="#000" stroke-width="20" stroke-linecap="round" fill="none"/><path d="M78 17 L78 58" stroke="#000" stroke-width="20" stroke-linecap="round" fill="none"/></mask>
+    <mask id="mordye-s1" maskUnits="userSpaceOnUse" x="0" y="0" width="96" height="96"><path d="M17 17 L47.5 55" stroke="#fff" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M47.5 55 L78 17" stroke="#000" stroke-width="20" stroke-linecap="round" fill="none"/><path d="M78 17 L78 58" stroke="#000" stroke-width="20" stroke-linecap="round" fill="none"/></mask>
+    <mask id="mordye-s2" maskUnits="userSpaceOnUse" x="0" y="0" width="96" height="96"><path d="M47.5 55 L78 17" stroke="#fff" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M78 17 L78 58" stroke="#000" stroke-width="20" stroke-linecap="round" fill="none"/></mask>
+    <mask id="mordye-s3" maskUnits="userSpaceOnUse" x="0" y="0" width="96" height="96"><path d="M78 17 L78 58" stroke="#fff" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M71 58 C71 64 76 64 76 68 C76 72 70.5 73.25 70.5 80 A7.5 7.5 0 0 0 85.5 80 C85.5 73.25 80 72 80 68 C80 64 85 64 85 58 Z" fill="#fff"/></mask>
+  </defs>
+  <g mask="url(#mordye-s0)">
+    <line x1="17.00" y1="89.00" x2="17.00" y2="7.00" stroke="#5c94f0" stroke-width="14.40"/>
+  </g>
+  <g mask="url(#mordye-s1)">
+    <line x1="13.47" y1="7.01" x2="56.49" y2="60.61" stroke="#5c94f0" stroke-width="7.40"/>
+    <line x1="8.01" y1="11.39" x2="51.03" y2="64.99" stroke="#e26977" stroke-width="7.40"/>
+  </g>
+  <g mask="url(#mordye-s2)">
+    <line x1="37.60" y1="59.88" x2="80.62" y2="6.28" stroke="#5c94f0" stroke-width="5.07"/>
+    <line x1="41.24" y1="62.80" x2="84.26" y2="9.20" stroke="#e26977" stroke-width="5.07"/>
+    <line x1="44.88" y1="65.72" x2="87.90" y2="12.12" stroke="#bb8d07" stroke-width="5.07"/>
+  </g>
+  <g mask="url(#mordye-s3)">
+    <path d="M71.00 0 L71.00 58 L76.00 68 L70.50 80 L70.50 96 L74.45 96 L74.45 80 L77.20 68 L74.70 58 L74.70 0 Z" fill="#5fab4d"/>
+    <path d="M74.50 0 L74.50 58 L77.00 68 L74.25 80 L74.25 96 L78.20 96 L78.20 80 L78.20 68 L78.20 58 L78.20 0 Z" fill="#bb8d07"/>
+    <path d="M78.00 0 L78.00 58 L78.00 68 L78.00 80 L78.00 96 L81.95 96 L81.95 80 L79.20 68 L81.70 58 L81.70 0 Z" fill="#e26977"/>
+    <path d="M81.50 0 L81.50 58 L79.00 68 L81.75 80 L81.75 96 L85.70 96 L85.70 80 L80.20 68 L85.20 58 L85.20 0 Z" fill="#5c94f0"/>
+  </g>
+</svg>

@@ -28,7 +28,7 @@ type Input struct {
 	// accent menu. They are candidates for terminal slots only.
 	Swatches map[string]string `json:"swatches,omitempty"`
 	// Accent names the swatch the user chose as their accent, on a theme
-	// that offers a menu of them. It tells mordye that primary and secondary
+	// that offers a menu of them. It tells Mordye that primary and secondary
 	// are a choice rather than part of the theme's palette, so they stay out
 	// of the terminal colors: changing the accent must never move those. The
 	// chosen color stays among the swatches, so the palette keeps it. Leave

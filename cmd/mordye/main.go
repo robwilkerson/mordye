@@ -4,7 +4,7 @@
 //	mordye < input.json                          mordye's own input format
 //	mordye dux --theme FILE [--settings FILE]    a Dux Shell theme
 //
-// mordye reads only the files named on its command line. Finding them (where
+// Mordye reads only the files named on its command line. Finding them (where
 // a source keeps its settings, which theme file they select) is the caller's
 // job.
 package main
@@ -39,7 +39,7 @@ func dispatch(args []string, stdin io.Reader, w io.Writer) error {
 	}
 }
 
-// run completes mordye's own input format, read from r.
+// run completes Mordye's own input format, read from r.
 func run(r io.Reader, w io.Writer) error {
 	dec := json.NewDecoder(r)
 	// A misspelled field would otherwise be dropped without a word, and the

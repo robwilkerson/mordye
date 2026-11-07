@@ -51,7 +51,7 @@ reviews:
           entry, or a wrong one, is a finding.
         - Output must be deterministic: the same input yields byte-identical
           output, so no map-order or float-formatting drift.
-        - Standard library only. mordye ships as one binary with no
+        - Standard library only. Mordye ships as one binary with no
           dependencies.
     - path: "adapter/**/*.go"
       instructions: |
@@ -79,7 +79,7 @@ reviews:
       instructions: |
         User-facing documentation. Review for accuracy against the code:
         the field counts, the adapter table, and the command-line examples must
-        match what mordye actually does.
+        match what Mordye actually does.
 
   auto_review:
     enabled: true

@@ -1,4 +1,4 @@
-# mordye — Command Runner
+# Mordye — Command Runner
 # Run `just` or `just --list` to see available commands.
 
 default:
