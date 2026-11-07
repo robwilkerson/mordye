@@ -3,6 +3,7 @@
 //
 //	mordye < input.json                          mordye's own input format
 //	mordye dux --theme FILE [--settings FILE]    a Dux Shell theme
+//	mordye --version                             the version it was built from
 //
 // Mordye reads only the files named on its command line. Finding them (where
 // a source keeps its settings, which theme file they select) is the caller's
@@ -15,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
 
 	"github.com/robwilkerson/mordye"
 	"github.com/robwilkerson/mordye/adapter/dux"
@@ -32,11 +34,29 @@ func dispatch(args []string, stdin io.Reader, w io.Writer) error {
 		return run(stdin, w)
 	}
 	switch args[0] {
+	case "--version":
+		_, err := fmt.Fprintln(w, "mordye", buildVersion())
+		return err
 	case "dux":
 		return runDux(args[1:], w)
 	default:
 		return fmt.Errorf("unknown source %q; sources: dux, or no argument to read mordye input on stdin", args[0])
 	}
+}
+
+// version is stamped by the release build (-ldflags "-X main.version=1.2.3").
+var version string
+
+// buildVersion is the stamped version, else the module version Go embeds at
+// build time (the tag, for `go install` of a release), else "(devel)".
+func buildVersion() string {
+	if version != "" {
+		return version
+	}
+	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" {
+		return bi.Main.Version
+	}
+	return "(devel)"
 }
 
 // run completes Mordye's own input format, read from r.

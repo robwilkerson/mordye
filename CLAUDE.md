@@ -44,6 +44,14 @@ breaking; flag it and apply the `👀 Attention` label.
 - `just bootstrap`: turn on the git hooks in `.githooks/` and check the tools a fresh clone needs (idempotent).
 - `just check`: formatting, vet, and tests. Run it before calling work done; CI runs the same checks on every push and PR.
 - `just build`, `just test`, `just fmt`.
+- `just release major|minor|patch|X.Y.Z`: cut a release from `main`. Long recipe logic lives in `bin/justfile/<recipe>.sh`.
+
+## Changelog
+
+A change someone using Mordye would notice gets a plain-language entry under
+`## Unreleased` in `CHANGELOG.md`, in the same PR. Write it for humans: what
+changed for them, not which commits did it. Refactors, tests, and tooling don't
+get entries.
 
 ## Issues
 
