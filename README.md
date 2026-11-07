@@ -57,6 +57,13 @@ A `sources` map records where each field came from: passed through, taken from a
 
 Early development. The color rules were prototyped against seven themes: Catppuccin Macchiato and Mocha, Tokyo Night, Nord, Gruvbox Material, Dracula, and Rosé Pine.
 
+## Known Limitations
+
+- **Dark themes only.** Mordye completes a theme's dark variant, and its tuning assumes a dark background. Light themes are [#27](https://github.com/robwilkerson/mordye/issues/27).
+- **One built-in source.** Dux Shell is the only adapter so far. Any other source has to write Mordye's input format itself.
+- **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version once releases exist.
+- **No releases yet.** Installing means building from source with Go 1.27+ ([#2](https://github.com/robwilkerson/mordye/issues/2), [#3](https://github.com/robwilkerson/mordye/issues/3)).
+
 ## Credits
 
 The test fixtures in `adapter/dux/testdata/` are theme files from the [Dux plugin registry](https://github.com/duxlabs-dev/dux-plugin-registry), copied unchanged so the adapter is tested against real themes. They are the work of their authors, and the palettes they carry belong to their own projects: [Catppuccin](https://catppuccin.com), [Dracula](https://draculatheme.com), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Nord](https://www.nordtheme.com), [Rosé Pine](https://rosepinetheme.com), and [Tokyo Night](https://github.com/folke/tokyonight.nvim).
