@@ -53,9 +53,9 @@ The output always has the same 37 fields:
 
 A `sources` map records where each field came from: passed through, taken from a role or swatch, or generated.
 
-## How mordye Fills the Gaps
+## How Mordye Fills the Gaps
 
-Every color mordye adds comes from a rule that reads the theme's own colors. This section says what each rule reads and why; the exact math lives in [`palette.go`](palette.go). If a result looks wrong, you can point at the rule or the input behind it, not just the color.
+Every color Mordye adds comes from a rule that reads the theme's own colors. This section says what each rule reads and why; the exact math lives in [`palette.go`](palette.go). If a result looks wrong, you can point at the rule or the input behind it, not just the color.
 
 The math happens in [OKLCH](https://bottosson.github.io/posts/oklab/), which separates lightness, chroma (how tinted a color is), and hue, and where equal steps look equal.
 
@@ -66,9 +66,9 @@ The math happens in [OKLCH](https://bottosson.github.io/posts/oklab/), which sep
 - **Tint:** it takes the hue and chroma of the nearest defined rung, so a slate theme stays slate.
 - **Lightness:** it sits the theme's own spacing away, the average gap between the rungs the theme defines.
 
-A theme that defines one rung gives no spacing to copy, so mordye uses Catppuccin Macchiato's. A theme that defines none gets the whole ladder generated, along with any missing `background`, `surface`, or `outline`, as near-grays at fixed lightness with a hint of the theme's outline (or text) tint.
+A theme that defines one rung gives no spacing to copy, so Mordye uses Catppuccin Macchiato's. A theme that defines none gets the whole ladder generated, along with any missing `background`, `surface`, or `outline`, as near-grays at fixed lightness with a hint of the theme's outline (or text) tint.
 
-**Example: Nord** defines `surface_container` (`#434c5e`) and `surface_container_high` (`#4c566a`), 0.037 apart in lightness. mordye puts `surface_container_highest` one more step up, in the same slate: `#566075`.
+**Example: Nord** defines `surface_container` (`#434c5e`) and `surface_container_high` (`#4c566a`), 0.037 apart in lightness. Mordye puts `surface_container_highest` one more step up, in the same slate: `#566075`.
 
 ### Terminal Colors
 
@@ -82,7 +82,7 @@ A slot no theme color fills is generated at its usual hue, at the palette's typi
 
 Black is the highest surface rung the theme itself defines, and bright black is a step lighter. Bright white is the theme's least-tinted text color, and white is a step dimmer.
 
-**Example: Dracula's** theme file defines no green. mordye generates one at green's usual hue, as light as Dracula's other colors and nearly as saturated: `#86c279`.
+**Example: Dracula's** theme file defines no green. Mordye generates one at green's usual hue, as light as Dracula's other colors and nearly as saturated: `#86c279`.
 
 ### Interface Roles
 
