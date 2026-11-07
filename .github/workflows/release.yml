@@ -1,0 +1,69 @@
+name: 🚀 Release
+
+# Publishes a GitHub release when `just release` pushes a vX.Y.Z tag: static
+# Linux binaries for amd64 and arm64, their SHA-256 checksums, and a build
+# provenance attestation. The release notes are the version's section of
+# CHANGELOG.md.
+on:
+  push:
+    # Tag filters are globs, not regex, so this only sieves. "Check the tag"
+    # does the real format check.
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
+
+permissions:
+  contents: write # create the release
+  id-token: write # sign the provenance attestation
+  attestations: write # store it
+
+jobs:
+  release:
+    name: Build & Publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7
+        with:
+          go-version-file: go.mod
+
+      - name: Check the tag
+        id: tag
+        run: |
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::$TAG is not vX.Y.Z"; exit 1; }
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Extract release notes
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          awk -v v="## $VERSION" '$0==v{p=1;next} p&&/^## /{exit} p' CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          if [[ ! -s "$RUNNER_TEMP/notes.md" ]]; then
+            echo "::error::No '## $VERSION' section in CHANGELOG.md at $TAG" && exit 1
+          fi
+          cat "$RUNNER_TEMP/notes.md"
+
+      # Into dist/, which .gitignore covers. An untracked binary in the worktree
+      # would make Go stamp the next build "+dirty" instead of the tag.
+      - name: Build
+        run: |
+          mkdir dist
+          for arch in amd64 arm64; do
+            GOOS=linux GOARCH="$arch" CGO_ENABLED=0 \
+              go build -trimpath -ldflags='-s -w' -o "dist/mordye-linux-$arch" ./cmd/mordye
+          done
+          got=$(./dist/mordye-linux-amd64 --version)
+          [[ "$got" == "mordye $TAG" ]] || { echo "::error::binary reports '$got', want 'mordye $TAG'"; exit 1; }
+          (cd dist && sha256sum mordye-linux-* > SHA256SUMS && cat SHA256SUMS)
+
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/mordye-linux-*
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$TAG" dist/* --verify-tag \
+            --title "$TAG" --notes-file "$RUNNER_TEMP/notes.md"

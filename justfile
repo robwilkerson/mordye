@@ -33,7 +33,7 @@ bootstrap:
     # Check optional tools
     echo "📦 Checking optional tools..."
     MISSING_OPTIONAL=0
-    command -v gh >/dev/null 2>&1 || { echo "⚪ gh not found (https://cli.github.com) - needed for issues and PRs"; MISSING_OPTIONAL=1; }
+    command -v gh >/dev/null 2>&1 || { echo "⚪ gh not found (https://cli.github.com) - needed for issues, PRs, and just release"; MISSING_OPTIONAL=1; }
     [ $MISSING_OPTIONAL -eq 0 ] && echo "✅ All optional tools found"
     echo ""
 
@@ -68,3 +68,12 @@ check:
     test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
     go vet ./...
     go test ./...
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Release
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Cut a release (major, minor, patch, or X.Y.Z): promote ## Unreleased in CHANGELOG.md, tag, and push
+[group('Release')]
+release bump:
+    @bash ./bin/justfile/release.sh {{ bump }}

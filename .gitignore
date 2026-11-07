@@ -1,6 +1,10 @@
 # The binary `go build ./cmd/mordye` drops in the repo root.
 /mordye
 
+# Release binaries. The release workflow builds into dist/, and Go stamps a
+# build "+dirty" if untracked files sit in the worktree.
+/dist/
+
 # Per-developer Claude Code state: session notes and personal setting overrides.
 SESSION_CONTEXT.md
 .claude/settings.local.json
