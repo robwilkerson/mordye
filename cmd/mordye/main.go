@@ -2,7 +2,10 @@
 // stdout.
 //
 //	mordye < input.json                          mordye's own input format
-//	mordye dux --theme FILE [--settings FILE]    a Dux Shell theme
+//	mordye dux --theme FILE [--settings FILE] [--terminal-palette FILE]
+//	                                             a Dux Shell theme, with the
+//	                                             official terminal palette its
+//	                                             authors publish
 //	mordye --version                             the version it was built from
 //
 // Mordye reads only the files named on its command line. Finding them (where
@@ -20,6 +23,7 @@ import (
 
 	"github.com/robwilkerson/mordye"
 	"github.com/robwilkerson/mordye/adapter/dux"
+	"github.com/robwilkerson/mordye/adapter/kitty"
 )
 
 func main() {
@@ -77,6 +81,11 @@ func runDux(args []string, w io.Writer) error {
 	fs.SetOutput(io.Discard)
 	theme := fs.String("theme", "", "the theme file the settings select (required)")
 	settings := fs.String("settings", "", "Dux's settings.json, for the flavor and accent chosen (default: the theme's own defaults)")
+	// The terminal palette is the canonical one the theme's authors publish
+	// for terminals. Its colors replace Mordye's hue-matched guesses. The
+	// flag names what the file holds rather than its format, which is kitty's
+	// theme format for now (see docs/decisions/0001).
+	terminalPalette := fs.String("terminal-palette", "", "the selected theme's official terminal palette, as a kitty theme file (default: generated from the theme)")
 	if err := fs.Parse(args); err != nil {
 		return fmt.Errorf("dux: %w", err)
 	}
@@ -97,7 +106,25 @@ func runDux(args []string, w io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("dux: %w", err)
 	}
+	if *terminalPalette != "" {
+		if in.Terminal, err = readTerminalPalette(*terminalPalette); err != nil {
+			return err
+		}
+	}
 	return write(in, w)
+}
+
+// readTerminalPalette reads a theme's official terminal palette.
+func readTerminalPalette(path string) (mordye.TerminalInput, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return mordye.TerminalInput{}, fmt.Errorf("terminal palette: %w", err)
+	}
+	t, err := kitty.Parse(b)
+	if err != nil {
+		return mordye.TerminalInput{}, fmt.Errorf("terminal palette %s: %w", path, err)
+	}
+	return t, nil
 }
 
 func write(in mordye.Input, w io.Writer) error {
