@@ -31,7 +31,14 @@ mordye dux --settings ~/.config/dms/settings.json \
 
 | Source | Files It Takes |
 |---|---|
-| `dux` ([Dux Shell](https://github.com/duxlabs-dev/dux-shell), formerly DankMaterialShell) | The theme file, plus settings for the flavor and accent you chose |
+| `dux` ([Dux Shell](https://github.com/duxlabs-dev/dux-shell), formerly DankMaterialShell) | The theme file; optionally, the settings for the flavor and accent you chose, and the theme's kitty port |
+
+To make the terminal match the theme's own terminal port, also pass that port as a kitty theme file (see [Terminal Colors](#terminal-colors)):
+
+```bash
+mordye dux --theme ~/.config/dms/themes/dracula/theme.json \
+  --terminal-palette ~/themes/dracula/kitty.conf > palette.json
+```
 
 A source with no built-in adapter can write the input format below and pipe it in: `mordye < input.json`.
 
@@ -72,7 +79,15 @@ A theme that defines one rung gives no spacing to copy, so Mordye uses Catppucci
 
 ### Terminal Colors
 
-Each chromatic slot has a usual hue: red, yellow, green, cyan, blue, and magenta. A theme color fills a slot when its hue is within 30° of the slot's, and it can fill only its nearest slot. Near-grays never fill one.
+**Where they come from:** most themes publish an official terminal port, the canonical terminal palette as the theme's authors define it, with a color for all 16 slots. Pass the path to one with `--terminal-palette`, and its colors (plus cursor and selection) pass through unchanged. Mordye fills only what the file leaves out.
+
+**Getting a port:** Mordye doesn't download anything, so you need the file on disk first. Look for a kitty port linked from the theme's own site or repository. If the theme doesn't have one, kitty's [theme collection](https://github.com/kovidgoyal/kitty-themes) probably does. On a theme with several flavors, grab the port for the flavor you chose, since each flavor has its own file.
+
+The port is a kitty theme file whatever terminal you use, because kitty ports are the easiest to find and to read: most themes ship one, and each line is a plain key and value. The format is only where the colors come from; your templates write them out for any terminal. [ADR 0001](docs/decisions/0001-kitty-ports-for-terminal-colors.md) has the reasoning.
+
+**When they may differ from a port:** without `--terminal-palette`, Mordye matches the theme's colors to slots by hue, using the rules below. Themes that fill slots by name come out differently: Dracula's blue slot holds its purple, and Rosé Pine's green holds its pine. Ports of the same theme can also disagree with each other (Rosé Pine's foot port puts foam in green), so the colors match the port you pass, not every port.
+
+Without a port, each chromatic slot has a usual hue: red, yellow, green, cyan, blue, and magenta. A theme color fills a slot when its hue is within 30° of the slot's, and it can fill only its nearest slot. Near-grays never fill one.
 
 - **Ties:** a named role (such as `error`) beats a swatch, and then the closer hue wins.
 - **Status colors:** `error` and `warning` claim red and yellow first, when their hue is in range.
@@ -82,7 +97,7 @@ A slot no theme color fills is generated at its usual hue, at the palette's typi
 
 Black is the highest surface rung the theme itself defines, and bright black is a step lighter. Bright white is the theme's least-tinted text color, and white is a step dimmer.
 
-**Example: Dracula's** theme file defines no green. Mordye generates one at green's usual hue, as light as Dracula's other colors and nearly as saturated: `#86c279`.
+**Example: Dracula's** theme file defines no green. Without its port, Mordye generates one at green's usual hue, as light as Dracula's other colors and nearly as saturated: `#86c279`.
 
 ### Interface Roles
 
@@ -91,7 +106,7 @@ Black is the highest surface rung the theme itself defines, and bright black is 
 - `on_primary` is `background` or `on_surface`, whichever contrasts more with `primary`.
 - `on_surface_variant` is `on_surface`, a step dimmer.
 
-The non-ANSI terminal fields come from the interface roles: the background from `background`, the foreground from `on_surface`, the cursor from `primary`, and the selection from `surface_container_high`.
+Any non-ANSI terminal field a port doesn't set comes from the interface roles: the background from `background`, the foreground from `on_surface`, the cursor from `primary`, and the selection from `surface_container_high`.
 
 ### Fixed Numbers
 
@@ -115,13 +130,15 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 ## Known Limitations
 
 - **Dark themes only.** Mordye completes a theme's dark variant, and its tuning assumes a dark background. Light themes are [#27](https://github.com/robwilkerson/mordye/issues/27).
-- **One built-in source.** Dux Shell is the only adapter so far. Any other source has to write Mordye's input format itself.
+- **One built-in source.** Dux Shell is the only theme adapter so far, and kitty the only terminal port format. Any other source has to write Mordye's input format itself.
 - **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version once releases exist.
 - **No releases yet.** Installing means building from source with Go 1.27+ ([#2](https://github.com/robwilkerson/mordye/issues/2), [#3](https://github.com/robwilkerson/mordye/issues/3)).
 
 ## Credits
 
 The test fixtures in `adapter/dux/testdata/` are theme files from the [Dux plugin registry](https://github.com/duxlabs-dev/dux-plugin-registry), copied unchanged so the adapter is tested against real themes. They are the work of their authors, and the palettes they carry belong to their own projects: [Catppuccin](https://catppuccin.com), [Dracula](https://draculatheme.com), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Nord](https://www.nordtheme.com), [Rosé Pine](https://rosepinetheme.com), and [Tokyo Night](https://github.com/folke/tokyonight.nvim).
+
+The fixtures in `adapter/kitty/testdata/` are official kitty ports, also copied unchanged and MIT licensed: [Catppuccin's](https://github.com/catppuccin/kitty), [Dracula's](https://github.com/dracula/kitty), and [Rosé Pine's](https://github.com/rose-pine/kitty).
 
 ## About the Robot
 

@@ -12,6 +12,12 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
+- **Terminal colors from the theme's own palette.**
+  `mordye dux --terminal-palette FILE` reads the official terminal palette a
+  theme publishes, as a kitty theme file, and its colors come through
+  unchanged. Your terminal now matches the theme, including themes like Dracula
+  that put colors in slots by name. Without the flag, nothing changes.
+
 ## 0.1.0
 
 Released 2026-11-07.
