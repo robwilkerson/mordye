@@ -22,9 +22,10 @@ concurrency:
 jobs:
   review:
     name: Automated Code Review
-    # Only the owner spends the model budget: PRs from this repo (fork PRs get
-    # no secrets), pushes only while the PR is a draft, and only the owner's
-    # /review, /improve, or /ask, so a stranger's comment can't run it.
+    # Only the owner spends the model budget. Automatic reviews run on PRs
+    # from this repo, and on pushes only while the PR is a draft. Commands
+    # (/review, /improve, /ask) run only for the owner, on any PR, so the
+    # owner can choose to review a fork PR; a stranger's comment can't run it.
     if: >-
       github.event.sender.type != 'Bot' && (
         (github.event_name == 'pull_request'
