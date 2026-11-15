@@ -1,6 +1,7 @@
 package dux
 
 import (
+	"encoding/json"
 	"os"
 	"strings"
 	"testing"
@@ -89,6 +90,55 @@ func TestAccentMovesOnlyTheAccent(t *testing.T) {
 	peach := parse(t, settings("catppuccin", "macchiato", "peach"), "catppuccin")
 	if peach.Terminal.Normal != green.Terminal.Normal || peach.Terminal.Bright != green.Terminal.Bright {
 		t.Errorf("the accent moved the terminal colors:\n green %+v\n peach %+v", green.Terminal.Normal, peach.Terminal.Normal)
+	}
+}
+
+// Every output field stays put across accents except the accent's own roles:
+// primary, the text on it, and secondary with tertiary, which follows it as
+// Dux renders it. In the terminal, only the cursor shows the accent; the 16
+// colors keep their meaning.
+func TestAccentMovesNothingButTheAccentRoles(t *testing.T) {
+	fields := func(o mordye.Output) map[string]string {
+		b, err := json.Marshal(struct {
+			UI       mordye.UI         `json:"ui"`
+			Terminal mordye.Terminal   `json:"terminal"`
+			Sources  map[string]string `json:"sources"`
+		}{o.UI, o.Terminal, o.Sources})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var nested map[string]map[string]any
+		if err := json.Unmarshal(b, &nested); err != nil {
+			t.Fatal(err)
+		}
+		flat := map[string]string{}
+		for group, m := range nested {
+			for k, v := range m {
+				if sub, ok := v.(map[string]any); ok {
+					for slot, hex := range sub {
+						flat[group+"."+k+"."+slot] = hex.(string)
+					}
+					continue
+				}
+				flat[group+"."+k] = v.(string)
+			}
+		}
+		return flat
+	}
+	moves := map[string]bool{
+		"ui.primary": true, "ui.on_primary": true, "ui.secondary": true, "ui.tertiary": true,
+		"terminal.cursor": true, "terminal.cursor_text": true,
+	}
+	green := fields(parse(t, settings("catppuccin", "macchiato", "green"), "catppuccin"))
+	blue := fields(parse(t, settings("catppuccin", "macchiato", "blue"), "catppuccin"))
+	for field, hex := range green {
+		if !moves[field] && blue[field] != hex {
+			t.Errorf("%s moved with the accent: %s under green, %s under blue", field, hex, blue[field])
+		}
+	}
+	if green["terminal.cursor"] != green["ui.primary"] || blue["terminal.cursor"] != blue["ui.primary"] {
+		t.Errorf("cursor %s and %s, want each accent's primary %s and %s",
+			green["terminal.cursor"], blue["terminal.cursor"], green["ui.primary"], blue["ui.primary"])
 	}
 }
 

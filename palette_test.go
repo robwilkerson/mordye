@@ -3,6 +3,7 @@ package mordye
 import (
 	"encoding/json"
 	"math"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -197,6 +198,54 @@ func TestMissingStatusRolesTakeTheThemesOwnColors(t *testing.T) {
 	}
 }
 
+// Colors arrive in either case, but every output color is lowercase, so
+// callers can compare them as strings.
+func TestEveryOutputColorIsLowercase(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#8AADF4", "on_surface": "#CAD3F5"},
+		Swatches: map[string]string{"red": "#ED8796"},
+		Terminal: TerminalInput{Normal: map[string]string{"green": "#A6DA95"}, Cursor: "#F4DBD6"},
+	}
+	b, err := json.Marshal(complete(t, in))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, hex := range regexp.MustCompile(`#[0-9A-Fa-f]{6}`).FindAllString(string(b), -1) {
+		if hex != strings.ToLower(hex) {
+			t.Errorf("output has %s, want every color lowercase", hex)
+		}
+	}
+}
+
+// The cursor is terminal chrome, so it shows the accent a user chose. A theme
+// without an accent menu gets the foreground, as most official ports draw it.
+func TestCursorShowsTheChosenAccentElseTheForeground(t *testing.T) {
+	accented := complete(t, macchiato())
+	if accented.Terminal.Cursor != accented.UI.Primary || accented.Terminal.CursorText != accented.UI.OnPrimary {
+		t.Errorf("with an accent: cursor %s on %s, want primary %s on %s",
+			accented.Terminal.Cursor, accented.Terminal.CursorText, accented.UI.Primary, accented.UI.OnPrimary)
+	}
+	plain := complete(t, sparse())
+	if plain.Terminal.Cursor != plain.UI.OnSurface || plain.Terminal.CursorText != plain.UI.Background {
+		t.Errorf("without an accent: cursor %s on %s, want the foreground %s on %s",
+			plain.Terminal.Cursor, plain.Terminal.CursorText, plain.UI.OnSurface, plain.UI.Background)
+	}
+}
+
+func TestCursorFollowsTheSourcesOwnForegroundWhenItSetsNoCursor(t *testing.T) {
+	in := sparse()
+	in.Terminal = TerminalInput{Foreground: "#ff0000", Background: "#000000"}
+	out := complete(t, in)
+	if out.Terminal.Cursor != "#ff0000" || out.Terminal.CursorText != "#000000" {
+		t.Errorf("cursor %s on %s, want the source's foreground #ff0000 on #000000",
+			out.Terminal.Cursor, out.Terminal.CursorText)
+	}
+	if got := out.Sources["terminal.cursor"]; got != "terminal.foreground" {
+		t.Errorf("cursor came from %s, want terminal.foreground", got)
+	}
+}
+
 func TestMissingSlotIsGeneratedAtItsHue(t *testing.T) {
 	out := complete(t, sparse())
 	if src := out.Sources["terminal.normal.green"]; src != "generated" {
@@ -235,12 +284,21 @@ func TestStructuralRolesAreNotSlotCandidates(t *testing.T) {
 	}
 }
 
+// The source's terminal colors pass through. A chosen accent is the one
+// exception: it keeps the cursor.
 func TestTerminalColorsFromTheSourcePassThrough(t *testing.T) {
 	in := macchiato()
+	in.Accent = ""
 	in.Terminal = TerminalInput{Normal: map[string]string{"magenta": "#f5bde6"}, Cursor: "#f4dbd6"}
 	out := complete(t, in)
 	if out.Terminal.Normal.Magenta != "#f5bde6" || out.Terminal.Cursor != "#f4dbd6" {
 		t.Errorf("magenta %s, cursor %s; want the source's #f5bde6 and #f4dbd6", out.Terminal.Normal.Magenta, out.Terminal.Cursor)
+	}
+	in.Accent = "green"
+	accented := complete(t, in)
+	if accented.Terminal.Normal.Magenta != "#f5bde6" || accented.Terminal.Cursor != accented.UI.Primary {
+		t.Errorf("with an accent: magenta %s, cursor %s; want the source's #f5bde6 and the accent %s",
+			accented.Terminal.Normal.Magenta, accented.Terminal.Cursor, accented.UI.Primary)
 	}
 	if got := out.Sources["terminal.normal.magenta"]; got != "terminal" {
 		t.Errorf("magenta source = %s, want terminal", got)
