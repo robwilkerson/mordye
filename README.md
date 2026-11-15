@@ -108,6 +108,8 @@ The input is a sparse palette:
 
 The palette's `name` and every swatch name must start with an ASCII letter or digit, then use only letters, digits, `.`, `_`, and `-`. Names come from theme files and end up in generated config, so Mordye rejects anything else rather than pass it along.
 
+Input colors may use either case. Every output color is lowercase `#rrggbb`, including the ones that pass through, so you can compare colors as strings.
+
 The output always has the same 37 fields:
 
 - **15 interface roles**, such as `primary`, `background`, `surface_container_high`, and `on_surface`

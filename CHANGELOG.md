@@ -21,6 +21,9 @@ moves them under a version heading when it cuts the release.
   accent menu, the terminal cursor takes the accent you chose, even over a
   terminal palette's own cursor. On a theme without one, it's now the
   foreground color, as most themes draw it, instead of `primary`.
+- **Every color comes out lowercase.** Colors a theme writes in uppercase used
+  to pass through that way, mixed with lowercase generated ones. Now the whole
+  palette is lowercase `#rrggbb`.
 
 ## 0.1.0
 
