@@ -14,7 +14,7 @@ How Mordye stays true to the theme:
 
 ## How It Compares
 
-Each image shows a theme's eight normal terminal colors three ways: the theme's official palette, what Mordye makes from the Dux theme file alone, and what [Dux Shell](https://github.com/duxlabs-dev/dux-shell) generates itself.
+Each image shows a theme's eight normal terminal colors three ways: the theme's official palette, what Mordye makes from the Dux theme file alone, and what [Dux Shell](https://github.com/duxlabs-dev/dux-shell) generates itself. Given the theme's [terminal palette](#terminal-colors) as well, Mordye's terminal matches the official row exactly; these rows show its fallback, from the theme file alone.
 
 Dux is here because it's the shell I use, and the comparison is a fair one rather than a knock on it. Building terminal colors from the accent is the Material You approach, and Dux follows it as designed; many shells and theme tools do the same. Mordye is for when you want the theme's own colors instead.
 
@@ -78,7 +78,9 @@ A `sources` map records where each field came from: passed through, taken from a
 
 ## How Mordye Fills the Gaps
 
-Every color Mordye adds comes from a rule that reads the theme's own colors. This section says what each rule reads and why; the exact math lives in [`palette.go`](palette.go). If a result looks wrong, you can point at the rule or the input behind it, not just the color.
+Every color Mordye adds comes from a rule that reads the theme's own colors. These rules matter most for the interface roles, where themes leave real gaps and there's no official answer to copy. For the terminal, a theme's own terminal palette beats any rule.
+
+This section says what each rule reads and why; the exact math lives in [`palette.go`](palette.go). If a result looks wrong, you can point at the rule or the input behind it, not just the color.
 
 The math happens in [OKLCH](https://bottosson.github.io/posts/oklab/), which separates lightness, chroma (how tinted a color is), and hue, and where equal steps look equal.
 
@@ -95,13 +97,13 @@ A theme that defines one rung gives no spacing to copy, so Mordye uses Catppucci
 
 ### Terminal Colors
 
-**Where they come from:** most themes publish an official terminal port, the canonical terminal palette as the theme's authors define it, with a color for all 16 slots. Pass the path to one with `--terminal-palette`, and its colors (plus cursor and selection) pass through unchanged. Mordye fills only what the file leaves out.
+**Pass the theme's terminal palette whenever one exists.** It's the only way to get the theme's exact terminal colors. Most themes publish an official terminal port, the canonical terminal palette as the theme's authors define it, with a color for all 16 slots. Pass the path to one with `--terminal-palette`, and its colors (plus cursor and selection) pass through unchanged. Mordye fills only what the file leaves out.
 
 **Getting a port:** Mordye doesn't download anything, so you need the file on disk first. Look for a kitty port linked from the theme's own site or repository. If the theme doesn't have one, kitty's [theme collection](https://github.com/kovidgoyal/kitty-themes) probably does. On a theme with several flavors, grab the port for the flavor you chose, since each flavor has its own file.
 
 The port is a kitty theme file whatever terminal you use, because kitty ports are the easiest to find and to read: most themes ship one, and each line is a plain key and value. The format is only where the colors come from; your templates write them out for any terminal. [ADR 0001](docs/decisions/0001-kitty-ports-for-terminal-colors.md) has the reasoning.
 
-**When they may differ from a port:** without `--terminal-palette`, Mordye matches the theme's colors to slots by hue, using the rules below. Themes that fill slots by name come out differently: Dracula's blue slot holds its purple, and Rosé Pine's green holds its pine. Ports of the same theme can also disagree with each other (Rosé Pine's foot port puts foam in green), so the colors match the port you pass, not every port.
+**Without one, Mordye falls back to matching by hue.** It keeps every color the theme defines, but it has to guess which slot each one fills and generate the rest, so the result won't equal the official palette. Themes that fill slots by name come out differently: Dracula's blue slot holds its purple, and Rosé Pine's green holds its pine. Ports of the same theme can also disagree with each other (Rosé Pine's foot port puts foam in green), so the colors match the port you pass, not every port.
 
 Without a port, each chromatic slot has a usual hue: red, yellow, green, cyan, blue, and magenta. A theme color fills a slot when its hue is within 30° of the slot's, and it can fill only its nearest slot. Near-grays never fill one.
 
