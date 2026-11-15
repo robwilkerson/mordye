@@ -67,6 +67,37 @@ Dux is here because it's the shell I use, and the comparison is a fair one rathe
 
 Dux's rows are the palettes it generated on 2026-11-15. `bin/readme-swatches.sh` redraws both images, running Mordye for its rows.
 
+## Install
+
+Each [release](https://github.com/robwilkerson/mordye/releases/latest) has Linux builds for x86_64 (`amd64`) and ARM (`arm64`), as a tarball or an RPM. Substitute the version and architecture you want:
+
+```bash
+VERSION=0.1.0 ARCH=amd64
+curl -LO "https://github.com/robwilkerson/mordye/releases/download/v${VERSION}/mordye_${VERSION}_linux_${ARCH}.tar.gz"
+tar -xzf "mordye_${VERSION}_linux_${ARCH}.tar.gz" mordye
+install -m 755 mordye ~/.local/bin/
+
+# or, on Fedora and other RPM systems:
+sudo dnf install "https://github.com/robwilkerson/mordye/releases/download/v${VERSION}/mordye_${VERSION}_linux_${ARCH}.rpm"
+```
+
+Each release's `checksums.txt` lists the SHA-256 of every file, to check a download with `sha256sum --check --ignore-missing checksums.txt`.
+
+On another platform, or to build from source, use Go 1.27 or later:
+
+```bash
+go install github.com/robwilkerson/mordye/cmd/mordye@latest
+```
+
+Check that it worked:
+
+```bash
+mordye --version
+echo '{"version":1,"colors":{"primary":"#c6a0f6","on_surface":"#cad3f5"}}' | mordye
+```
+
+The first prints `mordye` and its version. The second prints a complete palette as JSON.
+
 ## How It Fits Together
 
 ```
@@ -190,8 +221,8 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 
 - **Dark themes only.** Mordye completes a theme's dark variant, and its tuning assumes a dark background. Light themes are [#27](https://github.com/robwilkerson/mordye/issues/27).
 - **One built-in source.** Dux Shell is the only theme adapter so far, and kitty the only terminal port format. Any other source has to write Mordye's input format itself.
-- **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version once releases exist.
-- **No releases yet.** Installing means building from source with Go 1.27+ ([#2](https://github.com/robwilkerson/mordye/issues/2), [#3](https://github.com/robwilkerson/mordye/issues/3)).
+- **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version.
+- **Linux builds only.** Releases ship Linux binaries; other platforms build from source with `go install`.
 
 ## Credits
 
