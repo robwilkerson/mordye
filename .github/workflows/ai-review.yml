@@ -23,8 +23,8 @@ jobs:
   review:
     name: Automated Code Review
     # Only the owner spends the model budget: PRs from this repo (fork PRs get
-    # no secrets), pushes only while the PR is a draft, and slash commands only
-    # from the owner, so a stranger's comment can't run it.
+    # no secrets), pushes only while the PR is a draft, and only the owner's
+    # /review, /improve, or /ask, so a stranger's comment can't run it.
     if: >-
       github.event.sender.type != 'Bot' && (
         (github.event_name == 'pull_request'
@@ -33,7 +33,9 @@ jobs:
         || (github.event_name == 'issue_comment'
           && github.event.issue.pull_request
           && github.event.comment.author_association == 'OWNER'
-          && startsWith(github.event.comment.body, '/'))
+          && (startsWith(github.event.comment.body, '/review')
+            || startsWith(github.event.comment.body, '/improve')
+            || startsWith(github.event.comment.body, '/ask')))
       )
     runs-on: ubuntu-latest
     timeout-minutes: 10
