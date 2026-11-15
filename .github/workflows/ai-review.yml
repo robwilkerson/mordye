@@ -1,0 +1,77 @@
+name: 🤖 AI Code Review
+
+# Reviews pull requests with PR-Agent (https://github.com/The-PR-Agent/pr-agent)
+# on GPT-5.2, a different model family from the one that writes the code. Every
+# PR gets one review when it opens, draft or not. Each push to a draft gets
+# another, so the iterating happens before a human is asked to look. Otherwise
+# it reviews only on demand: comment /review, /improve, or /ask on the PR.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  issue_comment:
+    types: [created]
+
+# Each job asks for what it needs.
+permissions: {}
+
+# One review per PR at a time; a newer push or command replaces a stale run.
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Automated Code Review
+    # Only the owner spends the model budget. Automatic reviews run on PRs
+    # from this repo, and on pushes only while the PR is a draft. Commands
+    # (/review, /improve, /ask) run only for the owner, on any PR, so the
+    # owner can choose to review a fork PR; a stranger's comment can't run it.
+    if: >-
+      github.event.sender.type != 'Bot' && (
+        (github.event_name == 'pull_request'
+          && github.event.pull_request.head.repo.full_name == github.repository
+          && (github.event.action != 'synchronize' || github.event.pull_request.draft))
+        || (github.event_name == 'issue_comment'
+          && github.event.issue.pull_request
+          && github.event.comment.author_association == 'OWNER'
+          && (startsWith(github.event.comment.body, '/review')
+            || startsWith(github.event.comment.body, '/improve')
+            || startsWith(github.event.comment.body, '/ask')))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write # PR comments go through the issues API
+      pull-requests: write
+    steps:
+      # Pinned by digest. Its attestation shows The-PR-Agent's publish workflow
+      # built it from the v0.50.0 tag. Renovate keeps the pin current.
+      - name: Review
+        uses: docker://pragent/pr-agent:0.50.0-github_action@sha256:548e894a88071180832b2f4233f734d0acd0db1a879e2fcbaa70bac8b8372ebe
+        env:
+          OPENAI_KEY: ${{ secrets.PRAGENT_LLM_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          # No fallback model: a failed call should fail visibly, not quietly
+          # review with something else.
+          config.model: gpt-5.2
+          config.fallback_models: '[]'
+          # Don't re-post inline findings already on the PR from an earlier run.
+          config.persistent_inline_comments: 'true'
+          # Review against the project's own rules. CLAUDE.md is the one place
+          # they live; it's read from the target branch, so a PR that changes a
+          # rule is reviewed against the old one.
+          config.repo_context_files: '["CLAUDE.md"]'
+          # Upstream theme fixtures, copied unchanged; nothing to review.
+          ignore.glob: '["adapter/*/testdata/**"]'
+          # Review only. /describe would rewrite the PR body, and /improve
+          # doubles the cost; both stay available on demand.
+          github_action_config.auto_review: 'true'
+          github_action_config.auto_describe: 'false'
+          github_action_config.auto_improve: 'false'
+          github_action_config.pr_actions: '["opened", "reopened"]'
+          github_action_config.handle_push_trigger: 'true'
+          github_action_config.push_commands: '["/review"]'
+          # Labels follow the repo's own type and priority scheme.
+          pr_reviewer.enable_review_labels_security: 'false'
+          pr_reviewer.enable_review_labels_effort: 'false'
