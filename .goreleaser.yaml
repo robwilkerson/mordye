@@ -40,11 +40,10 @@ nfpms:
 checksum:
   name_template: checksums.txt
 
-# The release notes are the version's CHANGELOG.md section, passed in by the
-# workflow, so GoReleaser's commit-list changelog stays off.
-changelog:
-  disable: true
-
+# No changelog block: the release notes are the version's CHANGELOG.md section,
+# passed in by the workflow with --release-notes. GoReleaser loads that file in
+# its changelog step and skips the commit list when one is given, so disabling
+# the changelog would drop the notes too.
 release:
   # -rc and other prerelease tags publish as prereleases, which Renovate
   # ignores by default.
