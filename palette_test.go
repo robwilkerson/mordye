@@ -175,6 +175,11 @@ func TestSwatchesNeverBecomeTheAccent(t *testing.T) {
 		t.Errorf("secondary %s, tertiary %s; want both to fall back to primary %s, not a swatch",
 			out.UI.Secondary, out.UI.Tertiary, in.Colors["primary"])
 	}
+	// The green swatch shares primary's hex, so only the sources can tell
+	// a fallback from a swatch.
+	if s, ts := out.Sources["ui.secondary"], out.Sources["ui.tertiary"]; s != "ui.primary" || ts != "ui.secondary" {
+		t.Errorf("secondary from %s, tertiary from %s; want ui.primary and ui.secondary", s, ts)
+	}
 }
 
 // A missing status role takes its terminal slot, and that slot may hold one of
@@ -194,6 +199,9 @@ func TestMissingStatusRolesTakeTheThemesOwnColors(t *testing.T) {
 		if c.got != c.want || out.Sources["ui."+role] != "terminal.normal."+c.slot {
 			t.Errorf("%s = %s from %s, want the %s swatch %s by way of terminal.normal.%s",
 				role, c.got, out.Sources["ui."+role], c.slot, c.want, c.slot)
+		}
+		if got := out.Sources["terminal.normal."+c.slot]; got != "swatches."+c.slot {
+			t.Errorf("terminal.normal.%s came from %s, want swatches.%s", c.slot, got, c.slot)
 		}
 	}
 }
