@@ -14,11 +14,6 @@ on:
 # Each job asks for what it needs.
 permissions: {}
 
-# One review per PR at a time; a newer push or command replaces a stale run.
-concurrency:
-  group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: true
-
 jobs:
   review:
     name: Automated Code Review
@@ -38,6 +33,12 @@ jobs:
             || startsWith(github.event.comment.body, '/improve')
             || startsWith(github.event.comment.body, '/ask')))
       )
+    # One review per PR at a time; a newer push or command replaces a stale
+    # run. It sits on the job, after the if, so a skipped run (a bot's
+    # comment, say) can't cancel a real review.
+    concurrency:
+      group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
