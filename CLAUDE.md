@@ -29,7 +29,7 @@ The README promises these, and tests encode them:
 
 - A color the theme defines passes through unchanged.
 - The accent moves only `primary` and `secondary`.
-- Swatches never become interface roles.
+- Swatches reach the interface only as a missing `error`, `warning`, or `info`, by way of the terminal slot. They never become any other role.
 - The output always has all 37 fields, plus `sources`.
 
 Callers template against the output shape. A change to it, or to `Version`, is

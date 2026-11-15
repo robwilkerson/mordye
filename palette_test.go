@@ -166,11 +166,34 @@ func TestThemeWithoutAccentChoiceUsesPrimaryForSlots(t *testing.T) {
 	}
 }
 
-func TestSwatchesNeverBecomeInterfaceRoles(t *testing.T) {
+func TestSwatchesNeverBecomeTheAccent(t *testing.T) {
 	in := macchiato()
 	delete(in.Colors, "secondary")
-	if got := complete(t, in).UI.Secondary; got != in.Colors["primary"] {
-		t.Errorf("secondary = %s, want it to fall back to primary, not a swatch", got)
+	out := complete(t, in)
+	if out.UI.Secondary != in.Colors["primary"] || out.UI.Tertiary != in.Colors["primary"] {
+		t.Errorf("secondary %s, tertiary %s; want both to fall back to primary %s, not a swatch",
+			out.UI.Secondary, out.UI.Tertiary, in.Colors["primary"])
+	}
+}
+
+// A missing status role takes its terminal slot, and that slot may hold one of
+// the theme's swatches: its own red, yellow, or blue beats a generated one.
+func TestMissingStatusRolesTakeTheThemesOwnColors(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#c6a0f6", "on_surface": "#cad3f5"},
+		Swatches: map[string]string{"red": "#ed8796", "yellow": "#eed49f", "blue": "#8aadf4"},
+	}
+	out := complete(t, in)
+	for role, c := range map[string]struct{ got, slot, want string }{
+		"error":   {out.UI.Error, "red", "#ed8796"},
+		"warning": {out.UI.Warning, "yellow", "#eed49f"},
+		"info":    {out.UI.Info, "blue", "#8aadf4"},
+	} {
+		if c.got != c.want || out.Sources["ui."+role] != "terminal.normal."+c.slot {
+			t.Errorf("%s = %s from %s, want the %s swatch %s by way of terminal.normal.%s",
+				role, c.got, out.Sources["ui."+role], c.slot, c.want, c.slot)
+		}
 	}
 }
 
