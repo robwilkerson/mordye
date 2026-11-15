@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="870" height="300" viewBox="0 0 870 300" role="img" aria-labelledby="title">
+  <title id="title">Tokyo Night's eight terminal colors: the official palette, Mordye's from the theme file alone, and Dux's.</title>
+  <rect width="870" height="300" rx="12" fill="#1a1b26"/>
+  <g font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" fill="#a9b1d6" font-size="13" text-anchor="middle">
+    <text x="246" y="28">black</text>
+    <text x="326" y="28">red</text>
+    <text x="406" y="28">green</text>
+    <text x="486" y="28">yellow</text>
+    <text x="566" y="28">blue</text>
+    <text x="646" y="28">magenta</text>
+    <text x="726" y="28">cyan</text>
+    <text x="806" y="28">white</text>
+  </g>
+  <text x="20" y="70" fill="#c0caf5" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="15" font-weight="600">Tokyo Night</text>
+  <text x="20" y="90" fill="#a9b1d6" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12">official palette</text>
+  <rect x="210" y="44" width="72" height="44" rx="6" fill="#15161e" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="246" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#15161e</text>
+  <rect x="290" y="44" width="72" height="44" rx="6" fill="#f7768e" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="326" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#f7768e</text>
+  <rect x="370" y="44" width="72" height="44" rx="6" fill="#9ece6a" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="406" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#9ece6a</text>
+  <rect x="450" y="44" width="72" height="44" rx="6" fill="#e0af68" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="486" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#e0af68</text>
+  <rect x="530" y="44" width="72" height="44" rx="6" fill="#7aa2f7" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="566" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#7aa2f7</text>
+  <rect x="610" y="44" width="72" height="44" rx="6" fill="#bb9af7" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="646" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#bb9af7</text>
+  <rect x="690" y="44" width="72" height="44" rx="6" fill="#7dcfff" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="726" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#7dcfff</text>
+  <rect x="770" y="44" width="72" height="44" rx="6" fill="#a9b1d6" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="806" y="106" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#a9b1d6</text>
+  <text x="20" y="154" fill="#c0caf5" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="15" font-weight="600">Mordye</text>
+  <text x="20" y="174" fill="#a9b1d6" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12">from the theme file alone</text>
+  <rect x="210" y="128" width="72" height="44" rx="6" fill="#444b6a" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="246" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#444b6a</text>
+  <rect x="290" y="128" width="72" height="44" rx="6" fill="#f7768e" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="326" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#f7768e</text>
+  <rect x="370" y="128" width="72" height="44" rx="6" fill="#94cb88" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="406" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#94cb88</text>
+  <rect x="450" y="128" width="72" height="44" rx="6" fill="#eac475" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="486" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#eac475</text>
+  <rect x="530" y="128" width="72" height="44" rx="6" fill="#7aa2f7" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="566" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#7aa2f7</text>
+  <rect x="610" y="128" width="72" height="44" rx="6" fill="#bb9af7" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="646" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#bb9af7</text>
+  <rect x="690" y="128" width="72" height="44" rx="6" fill="#73daca" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="726" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#73daca</text>
+  <rect x="770" y="128" width="72" height="44" rx="6" fill="#c2c3c8" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="806" y="190" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#c2c3c8</text>
+  <text x="20" y="238" fill="#c0caf5" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="15" font-weight="600">Dux</text>
+  <text x="20" y="258" fill="#a9b1d6" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="12">its generated palette</text>
+  <rect x="210" y="212" width="72" height="44" rx="6" fill="#1a1b26" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="246" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#1a1b26</text>
+  <rect x="290" y="212" width="72" height="44" rx="6" fill="#ff7198" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="326" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#ff7198</text>
+  <rect x="370" y="212" width="72" height="44" rx="6" fill="#7af78c" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="406" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#7af78c</text>
+  <rect x="450" y="212" width="72" height="44" rx="6" fill="#fff871" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="486" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#fff871</text>
+  <rect x="530" y="212" width="72" height="44" rx="6" fill="#5c89ea" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="566" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#5c89ea</text>
+  <rect x="610" y="212" width="72" height="44" rx="6" fill="#7dcfff" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="646" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#7dcfff</text>
+  <rect x="690" y="212" width="72" height="44" rx="6" fill="#7aa2f7" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="726" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#7aa2f7</text>
+  <rect x="770" y="212" width="72" height="44" rx="6" fill="#eff9ff" stroke="#a9b1d6" stroke-opacity="0.5"/>
+  <text x="806" y="274" fill="#a9b1d6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" text-anchor="middle">#eff9ff</text>
+</svg>

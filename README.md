@@ -2,15 +2,31 @@
 
 [![Continuous Integration](https://github.com/robwilkerson/mordye/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/robwilkerson/mordye/actions/workflows/ci.yml)
 
-Give Mordye a partial color palette and it returns a complete one: every interface role an app needs, plus all 16 terminal colors.
+Mordye completes a theme's palette without bending it. Every color the theme defines comes through untouched, and every gap is filled in the theme's own style. You get every interface role an app needs, plus all 16 terminal colors.
 
 Desktop shells and theme tools describe palettes in Material roles (`primary`, `surface`, `error`, and so on), and most themes fill in only some of them. Terminals need 16 distinct colors, and few themes define them all. Tools that fill the gaps usually shift every hue toward the accent, so "blue" and "cyan" turn into shades of your accent color.
 
-Mordye fills the gaps without bending the palette:
+How Mordye stays true to the theme:
 
 - **A color the theme defines is used as-is.** Its red is your red, and its yellow is your yellow.
 - **A missing color is generated at its usual hue**, at the palette's own chroma and lightness, so a muted theme gets a muted green and a pastel theme a pastel one.
 - **The accent stays yours.** Changing it moves `primary` and `secondary`, and leaves every other color alone.
+
+## How It Compares
+
+Each image shows a theme's eight normal terminal colors three ways: the theme's official palette, what Mordye makes from the Dux theme file alone, and what [Dux Shell](https://github.com/duxlabs-dev/dux-shell) generates itself.
+
+Dux is here because it's the shell I use, and the comparison is a fair one rather than a knock on it. Building terminal colors from the accent is the Material You approach, and Dux follows it as designed; many shells and theme tools do the same. Mordye is for when you want the theme's own colors instead.
+
+![Catppuccin Mocha's terminal colors: official, Mordye, and Dux under two accents](assets/catppuccin-mocha-terminal.svg)
+
+**Catppuccin Mocha.** Mordye matches five of the eight official colors exactly, and fills magenta and cyan with other Catppuccin colors (mauve and sky). Its terminal stays the same whichever accent you pick. Dux's terminal follows the accent, as Material You intends: with green, its blue, magenta, and cyan all become greens.
+
+![Tokyo Night's terminal colors: official, Mordye, and Dux](assets/tokyo-night-terminal.svg)
+
+**Tokyo Night.** The theme file holds fewer of its terminal colors, so Mordye matches three and generates a softer green and yellow. Dux builds its own palette from the accent, so its colors differ from the official ones, and Tokyo Night's cyan and blue land in its magenta and cyan slots.
+
+Dux's rows are the palettes it generated on 2026-11-15. `bin/readme-swatches.sh` redraws both images, running Mordye for its rows.
 
 ## How It Fits Together
 
