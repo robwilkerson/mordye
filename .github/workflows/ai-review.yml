@@ -1,10 +1,10 @@
 name: 🤖 AI Code Review
 
 # Reviews pull requests with PR-Agent (https://github.com/The-PR-Agent/pr-agent)
-# on GPT-5.2, a different model family from the one that writes the code. It
-# reviews a PR when it opens and again on each push while it's a draft, so the
-# iterating happens before a human is asked to look. Once the PR is ready, it
-# reviews only on demand: comment /review, /improve, or /ask on the PR.
+# on GPT-5.2, a different model family from the one that writes the code. Every
+# PR gets one review when it opens, draft or not. Each push to a draft gets
+# another, so the iterating happens before a human is asked to look. Otherwise
+# it reviews only on demand: comment /review, /improve, or /ask on the PR.
 on:
   pull_request:
     types: [opened, reopened, synchronize]
@@ -72,3 +72,6 @@ jobs:
           github_action_config.pr_actions: '["opened", "reopened"]'
           github_action_config.handle_push_trigger: 'true'
           github_action_config.push_commands: '["/review"]'
+          # Labels follow the repo's own type and priority scheme.
+          pr_reviewer.enable_review_labels_security: 'false'
+          pr_reviewer.enable_review_labels_effort: 'false'
