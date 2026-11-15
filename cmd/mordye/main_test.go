@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/robwilkerson/mordye"
 )
 
 func TestRunCompletesAPaletteFromStdin(t *testing.T) {
@@ -47,6 +49,52 @@ func TestDuxReadsTheFilesItIsGiven(t *testing.T) {
 	}
 	if got.Name != "catppuccin-macchiato" || got.UI.Primary != "#f5a97f" {
 		t.Errorf("name %q, primary %s; want catppuccin-macchiato and peach #f5a97f", got.Name, got.UI.Primary)
+	}
+}
+
+// duxWithKitty runs the dux subcommand on a fixture theme and its kitty port,
+// plus any extra arguments.
+func duxWithKitty(t *testing.T, theme, port string, extra ...string) mordye.Output {
+	t.Helper()
+	args := append([]string{"dux", "--theme", "../../adapter/dux/testdata/" + theme + ".json",
+		"--terminal-palette", "../../adapter/kitty/testdata/" + port + ".conf"}, extra...)
+	var out bytes.Buffer
+	if err := dispatch(args, strings.NewReader(""), &out); err != nil {
+		t.Fatal(err)
+	}
+	var got mordye.Output
+	if err := json.Unmarshal(out.Bytes(), &got); err != nil {
+		t.Fatalf("output is not JSON: %v\n%s", err, out.String())
+	}
+	return got
+}
+
+// Both ports fill slots by name, which matching by hue alone would never do:
+// Dracula's blue is its purple, and Rosé Pine's green is its pine.
+func TestKittyPortSetsTheTerminalColors(t *testing.T) {
+	for _, c := range []struct{ theme, slot, got, want string }{
+		{"dracula", "blue", duxWithKitty(t, "dracula", "dracula").Terminal.Normal.Blue, "#bd93f9"},
+		{"rose-pine", "green", duxWithKitty(t, "rose-pine", "rose-pine").Terminal.Normal.Green, "#31748f"},
+	} {
+		if c.got != c.want {
+			t.Errorf("%s: %s = %s, want the port's %s", c.theme, c.slot, c.got, c.want)
+		}
+	}
+}
+
+func TestAccentDoesNotMoveTheKittyPortsColors(t *testing.T) {
+	mauve := duxWithKitty(t, "catppuccin", "catppuccin-mocha")
+	settings := t.TempDir() + "/settings.json"
+	body := `{"currentThemeName": "custom", "registryThemeVariants": {"catppuccin": {"dark": {"flavor": "mocha", "accent": "peach"}}}}`
+	if err := os.WriteFile(settings, []byte(body), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	peach := duxWithKitty(t, "catppuccin", "catppuccin-mocha", "--settings", settings)
+	if peach.UI.Primary == mauve.UI.Primary {
+		t.Fatalf("primary %s under both accents; the settings didn't apply", peach.UI.Primary)
+	}
+	if peach.Terminal != mauve.Terminal {
+		t.Errorf("the accent moved the terminal:\n mauve %+v\n peach %+v", mauve.Terminal, peach.Terminal)
 	}
 }
 

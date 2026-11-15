@@ -18,6 +18,7 @@ decision; raise it before adding one.
 
 - **Generator** (root package): `Complete(Input) (Output, error)`. It knows nothing about any source.
 - **Adapters** (`adapter/<source>/`): one package per source. `Parse` takes file contents, never paths, and returns `mordye.Input`. `adapter/dux` is the pattern for new adapters.
+- **Terminal port adapters** (`adapter/kitty`) supplement a theme adapter: `Parse` returns `mordye.TerminalInput`, and the CLI sets it on the theme's input. Why kitty: `docs/decisions/0001-kitty-ports-for-terminal-colors.md`.
 - **CLI** (`cmd/mordye`): the only code that touches the filesystem. It reads the files its flags name and runs one subcommand per source.
 - Mordye never discovers files. Finding a source's settings is the caller's job; keep it that way.
 - `color.go` holds the OKLab/LCh math. The tuning constants in `palette.go` were set against seven themes. A changed constant shifts every generated color, so check every fixture.
