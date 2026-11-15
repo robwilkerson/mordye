@@ -38,7 +38,7 @@ The README promises these, and tests encode them:
 
 - A color the theme defines passes through unchanged, except that a chosen accent always drives the terminal cursor.
 - The accent moves only `primary`, `on_primary` (when generated), `secondary`, `tertiary`, and the terminal cursor: chrome, never the 16 terminal colors.
-- Swatches never become interface roles.
+- Swatches reach the interface only as a missing `error`, `warning`, or `info`, by way of the terminal slot. They never become any other role.
 - The output always has all 37 fields, plus `sources`.
 - Every output field records its origin in `sources`; a missing or wrong entry is a bug.
 - A generated color keeps its slot's usual hue, at the palette's own chroma and lightness. Nothing pulls it toward the accent.

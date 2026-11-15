@@ -167,11 +167,59 @@ func TestThemeWithoutAccentChoiceUsesPrimaryForSlots(t *testing.T) {
 	}
 }
 
-func TestSwatchesNeverBecomeInterfaceRoles(t *testing.T) {
+// A source's own terminal red wins over a swatch in the terminal, so a missing
+// error role takes that red too, rather than the swatch the terminal no
+// longer shows.
+func TestMissingStatusRolesMatchTheSourcesTerminalColors(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#c6a0f6", "on_surface": "#cad3f5"},
+		Swatches: map[string]string{"red": "#ed8796"},
+		Terminal: TerminalInput{Normal: map[string]string{"red": "#ff5555"}},
+	}
+	out := complete(t, in)
+	if out.UI.Error != out.Terminal.Normal.Red || out.UI.Error != "#ff5555" {
+		t.Errorf("error = %s, terminal red = %s; want both the source's #ff5555",
+			out.UI.Error, out.Terminal.Normal.Red)
+	}
+}
+
+func TestSwatchesNeverBecomeTheAccent(t *testing.T) {
 	in := macchiato()
 	delete(in.Colors, "secondary")
-	if got := complete(t, in).UI.Secondary; got != in.Colors["primary"] {
-		t.Errorf("secondary = %s, want it to fall back to primary, not a swatch", got)
+	out := complete(t, in)
+	if out.UI.Secondary != in.Colors["primary"] || out.UI.Tertiary != in.Colors["primary"] {
+		t.Errorf("secondary %s, tertiary %s; want both to fall back to primary %s, not a swatch",
+			out.UI.Secondary, out.UI.Tertiary, in.Colors["primary"])
+	}
+	// The green swatch shares primary's hex, so only the sources can tell
+	// a fallback from a swatch.
+	if s, ts := out.Sources["ui.secondary"], out.Sources["ui.tertiary"]; s != "ui.primary" || ts != "ui.secondary" {
+		t.Errorf("secondary from %s, tertiary from %s; want ui.primary and ui.secondary", s, ts)
+	}
+}
+
+// A missing status role takes its terminal slot, and that slot may hold one of
+// the theme's swatches: its own red, yellow, or blue beats a generated one.
+func TestMissingStatusRolesTakeTheThemesOwnColors(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#c6a0f6", "on_surface": "#cad3f5"},
+		Swatches: map[string]string{"red": "#ed8796", "yellow": "#eed49f", "blue": "#8aadf4"},
+	}
+	out := complete(t, in)
+	for role, c := range map[string]struct{ got, slot, want string }{
+		"error":   {out.UI.Error, "red", "#ed8796"},
+		"warning": {out.UI.Warning, "yellow", "#eed49f"},
+		"info":    {out.UI.Info, "blue", "#8aadf4"},
+	} {
+		if c.got != c.want || out.Sources["ui."+role] != "terminal.normal."+c.slot {
+			t.Errorf("%s = %s from %s, want the %s swatch %s by way of terminal.normal.%s",
+				role, c.got, out.Sources["ui."+role], c.slot, c.want, c.slot)
+		}
+		if got := out.Sources["terminal.normal."+c.slot]; got != "swatches."+c.slot {
+			t.Errorf("terminal.normal.%s came from %s, want swatches.%s", c.slot, got, c.slot)
+		}
 	}
 }
 

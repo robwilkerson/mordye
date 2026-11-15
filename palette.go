@@ -26,7 +26,9 @@ type Input struct {
 	// and on_surface are required.
 	Colors map[string]string `json:"colors"`
 	// Swatches are extra theme colors with no role, such as Catppuccin's
-	// accent menu. They are candidates for terminal slots only.
+	// accent menu. They are candidates for terminal slots, and reach the
+	// interface only as a missing error, warning, or info, by way of the
+	// terminal red, yellow, or blue.
 	Swatches map[string]string `json:"swatches,omitempty"`
 	// Accent names the swatch the user chose as their accent, on a theme
 	// that offers a menu of them. It tells Mordye that primary and secondary
@@ -493,9 +495,16 @@ func (p *builder) fillUI() {
 		p.ui["on_surface_variant"] = lch{L: t.L - 0.1, C: t.C, H: t.H}.hex()
 		p.src["ui.on_surface_variant"] = "ui.on_surface, dimmer"
 	}
+	// A missing status role takes the terminal's red, yellow, or blue as the
+	// terminal will show it: the source's own color passes through later, so
+	// it's taken here first, over any color Mordye picked for the slot.
 	for role, slot := range map[string]string{"error": "red", "warning": "yellow", "info": "blue"} {
 		if _, ok := p.ui[role]; !ok {
-			p.ui[role], p.src["ui."+role] = p.term["normal."+slot], "terminal.normal."+slot
+			hex, ok := p.in.Terminal.Normal[slot]
+			if !ok {
+				hex = p.term["normal."+slot]
+			}
+			p.ui[role], p.src["ui."+role] = hex, "terminal.normal."+slot
 		}
 	}
 	if _, ok := p.ui["on_primary"]; !ok {

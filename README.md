@@ -102,7 +102,7 @@ A source with no built-in adapter can write the input format below and pipe it i
 The input is a sparse palette:
 
 - **`colors`:** any subset of the known roles. Only `primary` and `on_surface` are required.
-- **`swatches`:** extra theme colors with no role, such as Catppuccin's accent menu. They can fill terminal slots but never become interface roles.
+- **`swatches`:** extra theme colors with no role, such as Catppuccin's accent menu. They can fill terminal slots. The only interface roles one can reach are a missing `error`, `warning`, or `info`, by way of the terminal red, yellow, or blue (see [Interface Roles](#interface-roles)).
 - **`accent`:** on a theme with an accent menu, the swatch you chose. It keeps `primary` and `secondary` out of the terminal colors, so changing the accent never moves them.
 - **`terminal`:** any terminal colors the source already has. These pass through unchanged, except that a chosen `accent` keeps the cursor.
 
@@ -161,7 +161,7 @@ Black is the highest surface rung the theme itself defines, and bright black is 
 ### Interface Roles
 
 - `secondary` falls back to `primary`, and `tertiary` to `secondary`.
-- `error`, `warning`, and `info` fall back to the terminal red, yellow, and blue.
+- `error`, `warning`, and `info` fall back to the terminal red, yellow, and blue. Those may hold a swatch, since the theme's own red beats a generated one.
 - `on_primary` is `background` or `on_surface`, whichever contrasts more with `primary`.
 - `on_surface_variant` is `on_surface`, a step dimmer.
 
