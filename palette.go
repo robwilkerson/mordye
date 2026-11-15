@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strings"
 )
 
 // Version is the input and output format version.
@@ -541,12 +542,15 @@ func (p *builder) passThrough() {
 	}
 }
 
+// output assembles the palette. Every color is lowercased here, whatever case
+// it arrived in, so callers can compare colors as strings.
 func (p *builder) output() Output {
+	term := func(field string) string { return strings.ToLower(p.term[field]) }
 	ansi := func(set string) ANSI {
-		g := func(slot string) string { return p.term[set+"."+slot] }
+		g := func(slot string) string { return term(set + "." + slot) }
 		return ANSI{g("black"), g("red"), g("green"), g("yellow"), g("blue"), g("magenta"), g("cyan"), g("white")}
 	}
-	u := func(role string) string { return p.ui[role] }
+	u := func(role string) string { return strings.ToLower(p.ui[role]) }
 	mode := p.in.Mode
 	if mode == "" {
 		mode = "dark"
@@ -561,9 +565,9 @@ func (p *builder) output() Output {
 			u("surface_container_highest"), u("outline"), u("on_surface"), u("on_surface_variant"),
 		},
 		Terminal: Terminal{
-			Background: p.term["background"], Foreground: p.term["foreground"],
-			Cursor: p.term["cursor"], CursorText: p.term["cursor_text"],
-			SelectionBg: p.term["selection_bg"], SelectionFg: p.term["selection_fg"],
+			Background: term("background"), Foreground: term("foreground"),
+			Cursor: term("cursor"), CursorText: term("cursor_text"),
+			SelectionBg: term("selection_bg"), SelectionFg: term("selection_fg"),
 			Normal: ansi("normal"), Bright: ansi("bright"),
 		},
 		Sources: p.src,

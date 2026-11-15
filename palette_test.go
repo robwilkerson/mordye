@@ -3,6 +3,7 @@ package mordye
 import (
 	"encoding/json"
 	"math"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -171,6 +172,26 @@ func TestSwatchesNeverBecomeInterfaceRoles(t *testing.T) {
 	delete(in.Colors, "secondary")
 	if got := complete(t, in).UI.Secondary; got != in.Colors["primary"] {
 		t.Errorf("secondary = %s, want it to fall back to primary, not a swatch", got)
+	}
+}
+
+// Colors arrive in either case, but every output color is lowercase, so
+// callers can compare them as strings.
+func TestEveryOutputColorIsLowercase(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#8AADF4", "on_surface": "#CAD3F5"},
+		Swatches: map[string]string{"red": "#ED8796"},
+		Terminal: TerminalInput{Normal: map[string]string{"green": "#A6DA95"}, Cursor: "#F4DBD6"},
+	}
+	b, err := json.Marshal(complete(t, in))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, hex := range regexp.MustCompile(`#[0-9A-Fa-f]{6}`).FindAllString(string(b), -1) {
+		if hex != strings.ToLower(hex) {
+			t.Errorf("output has %s, want every color lowercase", hex)
+		}
 	}
 }
 
