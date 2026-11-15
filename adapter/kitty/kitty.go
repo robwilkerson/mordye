@@ -35,11 +35,16 @@ var fields = map[string]func(*mordye.TerminalInput) *string{
 	"selection_background": func(t *mordye.TerminalInput) *string { return &t.SelectionBg },
 }
 
-// keywords are values kitty accepts in place of a color on the non-ANSI
-// fields, meaning "work it out from another one". They carry no color to pass
-// through, so Mordye fills those fields itself. Kitty never accepts them on
-// colorN.
-var keywords = map[string]bool{"none": true, "background": true}
+// keywords gives the one word kitty accepts in place of a color on each field
+// that takes one, meaning "work it out from another color". It carries no
+// color to pass through, so Mordye fills the field itself. The other fields,
+// colorN included, take only a color.
+var keywords = map[string]string{
+	"cursor":               "none",
+	"cursor_text_color":    "background",
+	"selection_foreground": "none",
+	"selection_background": "none",
+}
 
 // includes pull in another file, whose colors Parse can't see.
 var includes = map[string]bool{"include": true, "globinclude": true, "envinclude": true, "geninclude": true}
@@ -66,7 +71,7 @@ func Parse(conf []byte) (mordye.TerminalInput, error) {
 			continue
 		}
 		switch {
-		case isField && keywords[value]:
+		case keywords[key] != "" && strings.EqualFold(value, keywords[key]):
 			value = ""
 		case !isHex(value):
 			return mordye.TerminalInput{}, fmt.Errorf("line %d: %s %q: want #rrggbb", n, key, value)

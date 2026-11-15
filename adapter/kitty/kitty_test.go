@@ -65,9 +65,9 @@ func TestAKeywordInPlaceOfAColorIsLeftForMordye(t *testing.T) {
 	if got.CursorText != "" {
 		t.Errorf("cursor_text = %q, want it left empty", got.CursorText)
 	}
-	got, err = Parse([]byte("color1 #ff5555\nselection_foreground none\n"))
-	if err != nil || got.SelectionFg != "" {
-		t.Errorf("selection_fg %q, err %v; want it left empty", got.SelectionFg, err)
+	got, err = Parse([]byte("color1 #ff5555\nselection_foreground none\ncursor NONE\n"))
+	if err != nil || got.SelectionFg != "" || got.Cursor != "" {
+		t.Errorf("selection_fg %q, cursor %q, err %v; want both left empty", got.SelectionFg, got.Cursor, err)
 	}
 }
 
@@ -79,8 +79,12 @@ func TestTheLastSettingWins(t *testing.T) {
 }
 
 func TestRejectsAColorMordyeCannotRead(t *testing.T) {
-	// Kitty takes "none" only on fields like the selection, never on colorN.
-	for _, conf := range []string{"color1 red\n", "color1 #f00\n", "foreground\n", "color1 none\n"} {
+	// Each keyword belongs to particular fields, as in kitty: "none" to the
+	// cursor and selection, "background" to the cursor text only.
+	for _, conf := range []string{
+		"color1 red\n", "color1 #f00\n", "foreground\n", "color1 none\n",
+		"foreground none\n", "background background\n", "cursor background\n", "cursor_text_color none\n",
+	} {
 		_, err := Parse([]byte(conf))
 		if err == nil || !strings.Contains(err.Error(), "line 1") {
 			t.Errorf("Parse(%q): err = %v, want one naming line 1", conf, err)
