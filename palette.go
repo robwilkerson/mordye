@@ -544,6 +544,16 @@ func (p *builder) passThrough() {
 			p.set(field, hex, "terminal")
 		}
 	}
+	// Without an accent the cursor is the foreground, so a source that sets its
+	// own foreground but no cursor gets a cursor in that foreground.
+	if p.in.Accent == "" {
+		if t.Cursor == "" && t.Foreground != "" {
+			p.set("cursor", t.Foreground, "terminal.foreground")
+		}
+		if t.CursorText == "" && t.Background != "" {
+			p.set("cursor_text", t.Background, "terminal.background")
+		}
+	}
 	for slot, hex := range t.Normal {
 		p.set("normal."+slot, hex, "terminal")
 	}

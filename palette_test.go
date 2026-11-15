@@ -189,6 +189,19 @@ func TestCursorShowsTheChosenAccentElseTheForeground(t *testing.T) {
 	}
 }
 
+func TestCursorFollowsTheSourcesOwnForegroundWhenItSetsNoCursor(t *testing.T) {
+	in := sparse()
+	in.Terminal = TerminalInput{Foreground: "#ff0000", Background: "#000000"}
+	out := complete(t, in)
+	if out.Terminal.Cursor != "#ff0000" || out.Terminal.CursorText != "#000000" {
+		t.Errorf("cursor %s on %s, want the source's foreground #ff0000 on #000000",
+			out.Terminal.Cursor, out.Terminal.CursorText)
+	}
+	if got := out.Sources["terminal.cursor"]; got != "terminal.foreground" {
+		t.Errorf("cursor came from %s, want terminal.foreground", got)
+	}
+}
+
 func TestMissingSlotIsGeneratedAtItsHue(t *testing.T) {
 	out := complete(t, sparse())
 	if src := out.Sources["terminal.normal.green"]; src != "generated" {

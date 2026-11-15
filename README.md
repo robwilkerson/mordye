@@ -10,7 +10,7 @@ How Mordye stays true to the theme:
 
 - **A color the theme defines is used as-is.** Its red is your red, and its yellow is your yellow.
 - **A missing color is generated at its usual hue**, at the palette's own chroma and lightness, so a muted theme gets a muted green and a pastel theme a pastel one.
-- **The accent shows where it belongs.** Changing it moves `primary`, `secondary`, and `tertiary`, and the terminal cursor. The 16 terminal colors never move, so red still means red in `git diff` and blue is still a directory in `ls`.
+- **The accent shows where it belongs.** Changing it moves `primary`, `secondary`, and `tertiary`, the text on `primary` (`on_primary`) when the theme doesn't set one, and the terminal cursor. The 16 terminal colors never move, so red still means red in `git diff` and blue is still a directory in `ls`.
 
 ## How It Works
 

@@ -100,9 +100,10 @@ func TestAccentMovesOnlyTheAccent(t *testing.T) {
 func TestAccentMovesNothingButTheAccentRoles(t *testing.T) {
 	fields := func(o mordye.Output) map[string]string {
 		b, err := json.Marshal(struct {
-			UI       mordye.UI       `json:"ui"`
-			Terminal mordye.Terminal `json:"terminal"`
-		}{o.UI, o.Terminal})
+			UI       mordye.UI         `json:"ui"`
+			Terminal mordye.Terminal   `json:"terminal"`
+			Sources  map[string]string `json:"sources"`
+		}{o.UI, o.Terminal, o.Sources})
 		if err != nil {
 			t.Fatal(err)
 		}
