@@ -35,9 +35,10 @@ var fields = map[string]func(*mordye.TerminalInput) *string{
 	"selection_background": func(t *mordye.TerminalInput) *string { return &t.SelectionBg },
 }
 
-// keywords are values kitty accepts in place of a color, meaning "work it out
-// from another one". They carry no color to pass through, so Mordye fills
-// those fields itself.
+// keywords are values kitty accepts in place of a color on the non-ANSI
+// fields, meaning "work it out from another one". They carry no color to pass
+// through, so Mordye fills those fields itself. Kitty never accepts them on
+// colorN.
 var keywords = map[string]bool{"none": true, "background": true}
 
 // includes pull in another file, whose colors Parse can't see.
@@ -65,24 +66,35 @@ func Parse(conf []byte) (mordye.TerminalInput, error) {
 			continue
 		}
 		switch {
-		case keywords[value]:
+		case isField && keywords[value]:
 			value = ""
 		case !isHex(value):
 			return mordye.TerminalInput{}, fmt.Errorf("line %d: %s %q: want #rrggbb", n, key, value)
 		}
-		switch {
-		case isField:
+		if isField {
 			*field(&t) = value
-		case value == "":
-			delete(set, slot)
-		default:
+		} else {
 			set[slot] = value
 		}
 	}
 	if err := lines.Err(); err != nil {
 		return mordye.TerminalInput{}, err
 	}
+	// A file that sets nothing is the wrong file, such as a theme passed in
+	// place of its terminal palette. Completing without it would hide that.
+	if empty(t) {
+		return mordye.TerminalInput{}, fmt.Errorf("no terminal colors found; want a kitty theme file")
+	}
 	return t, nil
+}
+
+func empty(t mordye.TerminalInput) bool {
+	for _, f := range fields {
+		if *f(&t) != "" {
+			return false
+		}
+	}
+	return len(t.Normal) == 0 && len(t.Bright) == 0
 }
 
 // ansiSlot returns the set and slot a colorN setting fills, or a nil set for

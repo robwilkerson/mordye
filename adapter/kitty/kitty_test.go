@@ -65,7 +65,7 @@ func TestAKeywordInPlaceOfAColorIsLeftForMordye(t *testing.T) {
 	if got.CursorText != "" {
 		t.Errorf("cursor_text = %q, want it left empty", got.CursorText)
 	}
-	got, err = Parse([]byte("selection_foreground none\n"))
+	got, err = Parse([]byte("color1 #ff5555\nselection_foreground none\n"))
 	if err != nil || got.SelectionFg != "" {
 		t.Errorf("selection_fg %q, err %v; want it left empty", got.SelectionFg, err)
 	}
@@ -79,11 +79,26 @@ func TestTheLastSettingWins(t *testing.T) {
 }
 
 func TestRejectsAColorMordyeCannotRead(t *testing.T) {
-	for _, conf := range []string{"color1 red\n", "color1 #f00\n", "foreground\n"} {
+	// Kitty takes "none" only on fields like the selection, never on colorN.
+	for _, conf := range []string{"color1 red\n", "color1 #f00\n", "foreground\n", "color1 none\n"} {
 		_, err := Parse([]byte(conf))
 		if err == nil || !strings.Contains(err.Error(), "line 1") {
 			t.Errorf("Parse(%q): err = %v, want one naming line 1", conf, err)
 		}
+	}
+}
+
+// A file that sets no terminal color is the wrong file, such as a Dux theme
+// passed in by mistake. A partial palette is still fine.
+func TestRejectsAFileWithNoTerminalColors(t *testing.T) {
+	for _, conf := range []string{"", "# just a comment\n", "{\n  \"primary\": \"#ff5555\"\n}\n"} {
+		_, err := Parse([]byte(conf))
+		if err == nil || !strings.Contains(err.Error(), "no terminal colors") {
+			t.Errorf("Parse(%q): err = %v, want one saying it has no terminal colors", conf, err)
+		}
+	}
+	if _, err := Parse([]byte("color1 #ff5555\n")); err != nil {
+		t.Errorf("a partial palette: err = %v, want none", err)
 	}
 }
 
