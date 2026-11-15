@@ -24,6 +24,10 @@ moves them under a version heading when it cuts the release.
 - **Every color comes out lowercase.** Colors a theme writes in uppercase used
   to pass through that way, mixed with lowercase generated ones. Now the whole
   palette is lowercase `#rrggbb`.
+- **Status colors match the terminal palette.** On a theme with no `error`,
+  `warning`, or `info` color, those come from the terminal red, yellow, and
+  blue. They now use the terminal palette's own colors when you pass one,
+  matching what your terminal shows.
 
 ## 0.1.0
 

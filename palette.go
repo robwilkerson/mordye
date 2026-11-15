@@ -495,9 +495,16 @@ func (p *builder) fillUI() {
 		p.ui["on_surface_variant"] = lch{L: t.L - 0.1, C: t.C, H: t.H}.hex()
 		p.src["ui.on_surface_variant"] = "ui.on_surface, dimmer"
 	}
+	// A missing status role takes the terminal's red, yellow, or blue as the
+	// terminal will show it: the source's own color passes through later, so
+	// it's taken here first, over any color Mordye picked for the slot.
 	for role, slot := range map[string]string{"error": "red", "warning": "yellow", "info": "blue"} {
 		if _, ok := p.ui[role]; !ok {
-			p.ui[role], p.src["ui."+role] = p.term["normal."+slot], "terminal.normal."+slot
+			hex, ok := p.in.Terminal.Normal[slot]
+			if !ok {
+				hex = p.term["normal."+slot]
+			}
+			p.ui[role], p.src["ui."+role] = hex, "terminal.normal."+slot
 		}
 	}
 	if _, ok := p.ui["on_primary"]; !ok {

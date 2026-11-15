@@ -167,6 +167,23 @@ func TestThemeWithoutAccentChoiceUsesPrimaryForSlots(t *testing.T) {
 	}
 }
 
+// A source's own terminal red wins over a swatch in the terminal, so a missing
+// error role takes that red too, rather than the swatch the terminal no
+// longer shows.
+func TestMissingStatusRolesMatchTheSourcesTerminalColors(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#c6a0f6", "on_surface": "#cad3f5"},
+		Swatches: map[string]string{"red": "#ed8796"},
+		Terminal: TerminalInput{Normal: map[string]string{"red": "#ff5555"}},
+	}
+	out := complete(t, in)
+	if out.UI.Error != out.Terminal.Normal.Red || out.UI.Error != "#ff5555" {
+		t.Errorf("error = %s, terminal red = %s; want both the source's #ff5555",
+			out.UI.Error, out.Terminal.Normal.Red)
+	}
+}
+
 func TestSwatchesNeverBecomeTheAccent(t *testing.T) {
 	in := macchiato()
 	delete(in.Colors, "secondary")
