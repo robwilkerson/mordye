@@ -82,7 +82,7 @@ func TestKittyPortSetsTheTerminalColors(t *testing.T) {
 	}
 }
 
-func TestAccentDoesNotMoveTheKittyPortsColors(t *testing.T) {
+func TestAccentMovesOnlyTheCursorOverAKittyPort(t *testing.T) {
 	mauve := duxWithKitty(t, "catppuccin", "catppuccin-mocha")
 	settings := t.TempDir() + "/settings.json"
 	body := `{"currentThemeName": "custom", "registryThemeVariants": {"catppuccin": {"dark": {"flavor": "mocha", "accent": "peach"}}}}`
@@ -93,8 +93,25 @@ func TestAccentDoesNotMoveTheKittyPortsColors(t *testing.T) {
 	if peach.UI.Primary == mauve.UI.Primary {
 		t.Fatalf("primary %s under both accents; the settings didn't apply", peach.UI.Primary)
 	}
+	// The accent drives the cursor, even over the port's; everything else in
+	// the port stays put.
+	for name, tm := range map[string]mordye.Output{"mauve": mauve, "peach": peach} {
+		if tm.Terminal.Cursor != tm.UI.Primary || tm.Terminal.CursorText != tm.UI.OnPrimary {
+			t.Errorf("%s: cursor %s on %s, want the accent %s on %s",
+				name, tm.Terminal.Cursor, tm.Terminal.CursorText, tm.UI.Primary, tm.UI.OnPrimary)
+		}
+	}
+	mauve.Terminal.Cursor, mauve.Terminal.CursorText = "", ""
+	peach.Terminal.Cursor, peach.Terminal.CursorText = "", ""
 	if peach.Terminal != mauve.Terminal {
-		t.Errorf("the accent moved the terminal:\n mauve %+v\n peach %+v", mauve.Terminal, peach.Terminal)
+		t.Errorf("the accent moved more than the cursor:\n mauve %+v\n peach %+v", mauve.Terminal, peach.Terminal)
+	}
+}
+
+// Without an accent menu, the port's own cursor passes through.
+func TestPortsCursorPassesThroughWithoutAnAccent(t *testing.T) {
+	if got := duxWithKitty(t, "dracula", "dracula").Terminal.Cursor; got != "#f8f8f2" {
+		t.Errorf("cursor = %s, want the port's #f8f8f2", got)
 	}
 }
 

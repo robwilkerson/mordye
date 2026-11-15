@@ -174,6 +174,34 @@ func TestSwatchesNeverBecomeInterfaceRoles(t *testing.T) {
 	}
 }
 
+// The cursor is terminal chrome, so it shows the accent a user chose. A theme
+// without an accent menu gets the foreground, as most official ports draw it.
+func TestCursorShowsTheChosenAccentElseTheForeground(t *testing.T) {
+	accented := complete(t, macchiato())
+	if accented.Terminal.Cursor != accented.UI.Primary || accented.Terminal.CursorText != accented.UI.OnPrimary {
+		t.Errorf("with an accent: cursor %s on %s, want primary %s on %s",
+			accented.Terminal.Cursor, accented.Terminal.CursorText, accented.UI.Primary, accented.UI.OnPrimary)
+	}
+	plain := complete(t, sparse())
+	if plain.Terminal.Cursor != plain.UI.OnSurface || plain.Terminal.CursorText != plain.UI.Background {
+		t.Errorf("without an accent: cursor %s on %s, want the foreground %s on %s",
+			plain.Terminal.Cursor, plain.Terminal.CursorText, plain.UI.OnSurface, plain.UI.Background)
+	}
+}
+
+func TestCursorFollowsTheSourcesOwnForegroundWhenItSetsNoCursor(t *testing.T) {
+	in := sparse()
+	in.Terminal = TerminalInput{Foreground: "#ff0000", Background: "#000000"}
+	out := complete(t, in)
+	if out.Terminal.Cursor != "#ff0000" || out.Terminal.CursorText != "#000000" {
+		t.Errorf("cursor %s on %s, want the source's foreground #ff0000 on #000000",
+			out.Terminal.Cursor, out.Terminal.CursorText)
+	}
+	if got := out.Sources["terminal.cursor"]; got != "terminal.foreground" {
+		t.Errorf("cursor came from %s, want terminal.foreground", got)
+	}
+}
+
 func TestMissingSlotIsGeneratedAtItsHue(t *testing.T) {
 	out := complete(t, sparse())
 	if src := out.Sources["terminal.normal.green"]; src != "generated" {
@@ -212,12 +240,21 @@ func TestStructuralRolesAreNotSlotCandidates(t *testing.T) {
 	}
 }
 
+// The source's terminal colors pass through. A chosen accent is the one
+// exception: it keeps the cursor.
 func TestTerminalColorsFromTheSourcePassThrough(t *testing.T) {
 	in := macchiato()
+	in.Accent = ""
 	in.Terminal = TerminalInput{Normal: map[string]string{"magenta": "#f5bde6"}, Cursor: "#f4dbd6"}
 	out := complete(t, in)
 	if out.Terminal.Normal.Magenta != "#f5bde6" || out.Terminal.Cursor != "#f4dbd6" {
 		t.Errorf("magenta %s, cursor %s; want the source's #f5bde6 and #f4dbd6", out.Terminal.Normal.Magenta, out.Terminal.Cursor)
+	}
+	in.Accent = "green"
+	accented := complete(t, in)
+	if accented.Terminal.Normal.Magenta != "#f5bde6" || accented.Terminal.Cursor != accented.UI.Primary {
+		t.Errorf("with an accent: magenta %s, cursor %s; want the source's #f5bde6 and the accent %s",
+			accented.Terminal.Normal.Magenta, accented.Terminal.Cursor, accented.UI.Primary)
 	}
 	if got := out.Sources["terminal.normal.magenta"]; got != "terminal" {
 		t.Errorf("magenta source = %s, want terminal", got)
