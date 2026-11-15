@@ -25,10 +25,14 @@ decision; raise it before adding one.
 
 ## Invariants
 
+The guiding rule: stay true to how the theme actually renders (its official
+ports, or the shell drawing it), not to a tidy rule. When the two disagree, the
+rendered output wins.
+
 The README promises these, and tests encode them:
 
-- A color the theme defines passes through unchanged.
-- The accent moves only `primary` and `secondary`.
+- A color the theme defines passes through unchanged, except that a chosen accent always drives the terminal cursor.
+- The accent moves only `primary`, `secondary`, `tertiary`, and the terminal cursor: chrome, never the 16 terminal colors.
 - Swatches never become interface roles.
 - The output always has all 37 fields, plus `sources`.
 
