@@ -76,6 +76,45 @@ The output always has the same 37 fields:
 
 A `sources` map records where each field came from: passed through, taken from a role or swatch, or generated.
 
+## How It Works
+
+Every color in the output comes from the first source on its row that has one. Mordye only reaches further down a row when the theme leaves a gap.
+
+| Color | Where It Comes From, in Order |
+|---|---|
+| `primary`, `secondary`, `tertiary` | The accent you chose, on a theme with an accent menu. Then the theme's own role. A missing `secondary` copies `primary`, and `tertiary` copies `secondary`. |
+| `error`, `warning`, `info` | The theme's own role. Then the terminal red, yellow, or blue, which may be one of the theme's swatches. |
+| Other interface roles | The theme's own role. Then a rule built from the theme's other colors ([Surfaces](#surfaces), [Interface Roles](#interface-roles)). |
+| The 16 terminal colors | The [terminal palette](#terminal-colors) you pass. Then a theme color matched to the slot by hue. Then a color generated at the slot's usual hue. Black, white, and the brights follow their own rules. |
+| Terminal cursor | The accent you chose. Then the terminal palette. Then the foreground. |
+| Terminal background, foreground, and selection | The terminal palette. Then the matching interface role. |
+
+The accent never reaches the 16 terminal colors, so red still means red in `git diff`, and blue is still a directory in `ls`.
+
+### Why Am I Seeing This Color?
+
+Look the field up in `sources`. Each value names where its color came from:
+
+- **`colors.<role>`:** the theme defined it.
+- **`swatches.<name>`:** one of the theme's extra colors, such as Catppuccin's `mauve`.
+- **`terminal`:** the terminal palette you passed.
+- **`ui.<role>`:** copied from an interface role.
+- **`generated`:** the theme had nothing usable, so Mordye made it.
+- **A note, such as `bright.white, dimmer`:** derived from another field.
+
+For example, Catppuccin Mocha with the green accent and no terminal palette:
+
+```json
+"ui.primary": "colors.primary",
+"ui.tertiary": "ui.secondary",
+"terminal.normal.red": "colors.error",
+"terminal.normal.magenta": "swatches.mauve",
+"terminal.normal.white": "bright.white, dimmer",
+"terminal.cursor": "ui.primary"
+```
+
+Primary is the theme's own (the green accent), and tertiary copies secondary. Red is the theme's `error` color, and magenta is Catppuccin's mauve. White is a dimmer bright white, and the cursor shows the accent.
+
 ## How Mordye Fills the Gaps
 
 Every color Mordye adds comes from a rule that reads the theme's own colors. These rules matter most for the interface roles, where themes leave real gaps and there's no official answer to copy. For the terminal, a theme's own terminal palette beats any rule.
