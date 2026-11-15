@@ -56,6 +56,13 @@ jobs:
           # review with something else.
           config.model: gpt-5.2
           config.fallback_models: '[]'
+          # Bugs here tend to span functions, such as two calls whose order
+          # matters, so the model sees more code around each change and
+          # reasons longer about it. PRs are small; the extra cost is modest.
+          config.reasoning_effort: high
+          config.patch_extra_lines_before: '20'
+          config.patch_extra_lines_after: '10'
+          config.max_extra_lines_before_dynamic_context: '30'
           # Don't re-post inline findings already on the PR from an earlier run.
           config.persistent_inline_comments: 'true'
           # Review against the project's own rules. CLAUDE.md is the one place
