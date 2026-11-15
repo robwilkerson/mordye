@@ -36,7 +36,7 @@ type Input struct {
 	// it empty for a theme with one fixed palette.
 	Accent string `json:"accent,omitempty"`
 	// Terminal holds any terminal colors the source already has. Each one
-	// passes through unchanged.
+	// passes through unchanged, except the cursor when there's an Accent.
 	Terminal TerminalInput `json:"terminal,omitzero"`
 }
 
@@ -516,22 +516,43 @@ func abs(x float64) float64 {
 	return x
 }
 
+// fillTerminalExtras fills the non-ANSI terminal fields from the interface
+// roles. The cursor is chrome rather than a color with a meaning, so on a
+// theme with an accent menu it shows the accent the user chose. Otherwise it's
+// the foreground, as most themes' official terminal ports draw it.
 func (p *builder) fillTerminalExtras() {
-	for field, role := range map[string]string{
+	roles := map[string]string{
 		"background": "background", "foreground": "on_surface",
-		"cursor": "primary", "cursor_text": "on_primary",
+		"cursor": "on_surface", "cursor_text": "background",
 		"selection_bg": "surface_container_high", "selection_fg": "on_surface",
-	} {
+	}
+	if p.in.Accent != "" {
+		roles["cursor"], roles["cursor_text"] = "primary", "on_primary"
+	}
+	for field, role := range roles {
 		p.set(field, p.ui[role], "ui."+role)
 	}
 }
 
-// passThrough applies the source's own terminal colors over everything else.
+// passThrough applies the source's own terminal colors over everything else,
+// except that a chosen accent keeps the cursor: it's chrome, and showing the
+// accent there is the point of choosing one.
 func (p *builder) passThrough() {
 	t := p.in.Terminal
 	for field, hex := range t.scalars() {
-		if hex != "" {
+		accentOwns := p.in.Accent != "" && (field == "cursor" || field == "cursor_text")
+		if hex != "" && !accentOwns {
 			p.set(field, hex, "terminal")
+		}
+	}
+	// Without an accent the cursor is the foreground, so a source that sets its
+	// own foreground but no cursor gets a cursor in that foreground.
+	if p.in.Accent == "" {
+		if t.Cursor == "" && t.Foreground != "" {
+			p.set("cursor", t.Foreground, "terminal.foreground")
+		}
+		if t.CursorText == "" && t.Background != "" {
+			p.set("cursor_text", t.Background, "terminal.background")
 		}
 	}
 	for slot, hex := range t.Normal {

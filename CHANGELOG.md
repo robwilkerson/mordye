@@ -17,6 +17,10 @@ moves them under a version heading when it cuts the release.
   theme publishes, as a kitty theme file, and its colors come through
   unchanged. Your terminal now matches the theme, including themes like Dracula
   that put colors in slots by name. Without the flag, nothing changes.
+- **The cursor follows the accent only when there is one.** On a theme with an
+  accent menu, the terminal cursor takes the accent you chose, even over a
+  terminal palette's own cursor. On a theme without one, it's now the
+  foreground color, as most themes draw it, instead of `primary`.
 - **Every color comes out lowercase.** Colors a theme writes in uppercase used
   to pass through that way, mixed with lowercase generated ones. Now the whole
   palette is lowercase `#rrggbb`.
