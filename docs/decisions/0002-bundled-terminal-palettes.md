@@ -1,34 +1,86 @@
 # 2. Bundled Terminal Palettes
 
-Date: 2026-11-15
+Date: 2026-11-17
 
 ## Status
 
-Proposed ([#35](https://github.com/robwilkerson/mordye/issues/35)). Builds on [ADR 0001](0001-kitty-ports-for-terminal-colors.md).
+Accepted ([#35](https://github.com/robwilkerson/mordye/issues/35)). Builds on [ADR 0001](0001-kitty-ports-for-terminal-colors.md).
 
 ## Context
 
-Since ADR 0001, `--terminal-palette FILE` gives a theme its exact terminal colors. Without the file, Mordye matches colors to slots by hue, which won't equal the official palette. Every user of a popular theme has to find and download the same port file.
+Since ADR 0001, `--terminal-palette FILE` gives a theme its exact terminal colors. Without the file, Mordye matches colors to slots by hue, which won't equal the theme's own palette. Every caller of a well-known theme has to find and download the same port, and match theme names to port files itself.
 
-Shipping official palettes inside Mordye removes that step. It also reverses an earlier position: hardcoding palettes was avoided in #32 because it ties Mordye to specific themes.
+Mordye can carry those palettes as reference data instead, so every caller gets them for free. Two constraints shape how:
 
-Kitty's theme collection would be the obvious source, but it's GPL-3.0. Building it into Mordye's MIT binary would bring the binary under GPL terms.
+- **Licensing.** Mordye is MIT. Kitty's theme collection is GPL-3.0, and many of its files declare no license. Building either into the binary isn't an option.
+- **Fidelity.** Ports of the same theme can disagree (iTerm2's Catppuccin brights are lighter than Catppuccin's own). Only a port by the theme's authors defines what "true to the theme" means.
 
 ## Decision
 
-Mordye ships a curated set of official terminal palettes, embedded in the binary with `go:embed`.
+Mordye embeds a curated set of terminal palettes in the binary.
 
-- **Only official ports,** from the theme's own authors, under a license that allows bundling in MIT software. Each is copied unchanged and credited in the README. Kitty's GPL collection stays out.
-- **Applied by theme name.** When a theme's name matches a bundled palette, its colors pass through as if given with `--terminal-palette`.
-- **The flag wins.** `--terminal-palette FILE` overrides a bundled palette, for themes Mordye lacks or ports a user prefers.
-- **Visible in `sources`,** so a reader can tell a bundled palette's colors from a file's or a generated guess.
-- **Contributions** add one palette file plus a credit line. Starting set: Catppuccin's four flavors, Dracula, and Rosé Pine.
+**What qualifies**
 
-Mordye still never reads or downloads anything it isn't given; the palettes are part of the binary.
+- A port published by the theme's own authors, under a license compatible with MIT (MIT, Apache-2.0, BSD, and the like).
+- Any port format. The format only matters to the converter that reads it.
+- Light and dark variants alike. Light palettes wait on [#27](https://github.com/robwilkerson/mordye/issues/27) to be used, but they're stored now.
+
+**Starting set:** the themes Dux ships that have a qualifying port. Others arrive by contribution.
+
+| Theme | Variants | Official port | License |
+|---|---|---|---|
+| Catppuccin | Mocha, Macchiato, Frappé, Latte | catppuccin/kitty | MIT |
+| Dracula | Dracula | dracula/kitty | MIT |
+| Flexoki | Dark, Light | kepano/flexoki | MIT |
+| Kanagawa | Wave, Dragon, Lotus | rebelot/kanagawa.nvim | MIT |
+| Nord | Nord | nordtheme/xresources | MIT |
+| Rosé Pine | Main, Moon, Dawn | rose-pine/kitty | MIT |
+| Solarized Osaka | Dark, Light | craftzdog/solarized-osaka.nvim | Apache-2.0 |
+| Tokyo Night | Night, Storm, Moon, Day | folke/tokyonight.nvim | Apache-2.0 |
+
+**Second batch:** themes whose authors publish terminal colors only inside a Vim colorscheme, built from a palette table. They follow once the first set ships, through one Vim converter:
+
+- It runs Neovim headless, loads the colorscheme with the options that pick a variant (such as `everforest_background=hard`), and reads back `g:terminal_color_0` through `g:terminal_color_15`.
+- It reads what Neovim renders, so it needs no Vimscript parsing and works for any colorscheme that sets terminal colors.
+- The options are part of the palette's recorded source, so CI reproduces the same colors.
+- Neovim is needed only to convert, by maintainers and CI. Mordye itself gains nothing at runtime.
+
+| Theme | Variants | Official source | License |
+|---|---|---|---|
+| Everforest | Hard, Medium, Soft; dark and light | sainnhe/everforest | MIT |
+| Gruvbox | Hard, Medium, Soft; dark and light | morhetz/gruvbox | MIT, stated in its README |
+| Gruvbox Material | Hard, Medium, Soft; dark and light | sainnhe/gruvbox-material | MIT |
+
+**How palettes are stored**
+
+- Each palette is one JSON file in Mordye's own terminal shape, named by its id. Mordye reads only that at runtime.
+- An id follows the upstream port's own naming: Catppuccin's `mocha.conf` becomes `catppuccin-mocha`.
+- Each file records its upstream URL, the commit it was taken from, and the upstream copyright and license. MIT and Apache both require the notice to travel with the colors.
+- The license record points to where the license is stated, at that same commit: a LICENSE file, or a README line when that's all the project has. If a project later changes its license, Mordye drops the palette.
+- A converter per port format (kitty first, then Xresources for Nord) writes these files from the upstream port at a pinned commit. Nobody edits them by hand.
+- CI reruns the converters from each file's recorded source. Any difference fails the build.
+
+**How a palette is chosen**
+
+- `Input.Palette` names a palette id. `Name` stays as it is, since the output echoes it.
+- Each adapter maps its own theme names to ids. The Dux adapter maps `rosePine` to `rose-pine`, and Catppuccin with the `mocha` flavor to `catppuccin-mocha`. Knowledge of a source's names stays in its adapter.
+- A bundled palette applies only when the input has no terminal colors of its own. `--terminal-palette FILE` wins, all or nothing; two ports never mix.
+- Colors from a bundled palette show in `sources` as `palette.<id>`. Colors from a file stay `terminal`.
+- An unknown id is an error. A test checks that every id an adapter maps to is bundled.
+
+**Adding a theme**
+
+1. Write a converter, if the port's format is new.
+2. Run the converter on the official port, writing the palette where Mordye expects it.
+3. Map the theme in each adapter that knows it, and credit the port in the README.
+4. Open a PR with all of the above.
+
+Mordye still never reads or downloads anything at runtime that it isn't given; the palettes are part of the binary.
 
 ## Consequences
 
-- Popular themes come out right with no extra file, and callers like a theme engine get simpler.
-- Mordye now carries theme data. When a theme updates its port, Mordye's copy needs an update and a release.
-- A new bundled palette changes the output for that theme. That's intended, but the changelog should name it.
-- Matching by name needs a rule for case, accents, and spacing, plus aliases where names differ. The rule becomes part of the contract.
+- Well-known themes come out right with no extra file, and callers such as a theme engine need no palette collection or name matching of their own.
+- Mordye now carries theme data. When a theme updates its port, Mordye's copy needs a rerun of the converter and a release.
+- A newly bundled palette changes the output for that theme. That's intended, and the changelog names it.
+- Themes with no official, compatible port (Modus is GPL; Everforest and Gruvbox Material have only third-party ports) keep generated terminal colors.
+- The release must ship the upstream license notices alongside the binary.
