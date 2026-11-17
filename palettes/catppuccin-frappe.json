@@ -1,0 +1,43 @@
+{
+  "id": "catppuccin-frappe",
+  "mode": "dark",
+  "source": {
+    "repo": "catppuccin/kitty",
+    "commit": "177d447f0c3626959ef001b4605f5d844541fd63",
+    "path": "themes/frappe.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/catppuccin/kitty/blob/177d447f0c3626959ef001b4605f5d844541fd63/LICENSE",
+    "notice": "notices/catppuccin-kitty.txt"
+  },
+  "terminal": {
+    "background": "#303446",
+    "foreground": "#c6d0f5",
+    "cursor": "#f2d5cf",
+    "cursor_text": "#303446",
+    "selection_bg": "#f2d5cf",
+    "selection_fg": "#303446",
+    "normal": {
+      "black": "#51576d",
+      "blue": "#8caaee",
+      "cyan": "#81c8be",
+      "green": "#a6d189",
+      "magenta": "#f4b8e4",
+      "red": "#e78284",
+      "white": "#a5adce",
+      "yellow": "#e5c890"
+    },
+    "bright": {
+      "black": "#626880",
+      "blue": "#7b9ef0",
+      "cyan": "#5abfb5",
+      "green": "#8ec772",
+      "magenta": "#f2a4db",
+      "red": "#e67172",
+      "white": "#b5bfe2",
+      "yellow": "#d9ba73"
+    }
+  }
+}

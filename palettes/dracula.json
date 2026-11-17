@@ -1,0 +1,42 @@
+{
+  "id": "dracula",
+  "mode": "dark",
+  "source": {
+    "repo": "dracula/kitty",
+    "commit": "87717a3f00e3dff0fc10c93f5ff535ea4092de70",
+    "path": "dracula.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/dracula/kitty/blob/87717a3f00e3dff0fc10c93f5ff535ea4092de70/LICENSE",
+    "notice": "notices/dracula-kitty.txt"
+  },
+  "terminal": {
+    "background": "#282a36",
+    "foreground": "#f8f8f2",
+    "cursor": "#f8f8f2",
+    "selection_bg": "#44475a",
+    "selection_fg": "#ffffff",
+    "normal": {
+      "black": "#21222c",
+      "blue": "#bd93f9",
+      "cyan": "#8be9fd",
+      "green": "#50fa7b",
+      "magenta": "#ff79c6",
+      "red": "#ff5555",
+      "white": "#f8f8f2",
+      "yellow": "#f1fa8c"
+    },
+    "bright": {
+      "black": "#6272a4",
+      "blue": "#d6acff",
+      "cyan": "#a4ffff",
+      "green": "#69ff94",
+      "magenta": "#ff92df",
+      "red": "#ff6e6e",
+      "white": "#ffffff",
+      "yellow": "#ffffa5"
+    }
+  }
+}

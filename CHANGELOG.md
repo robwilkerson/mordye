@@ -12,11 +12,16 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
-- **Terminal colors from the theme's own palette.** `mordye dux` takes a new
-  `--terminal-palette FILE` flag. It reads the official terminal palette a
-  theme publishes, as a kitty theme file, and its colors come through
-  unchanged. Your terminal now matches the theme, including themes like Dracula
-  that put colors in slots by name. Without the flag, nothing changes.
+- **Terminal colors from the theme's own palette.** Mordye now carries the
+  official terminal palettes of Catppuccin, Dracula, Flexoki, Kanagawa, Nord,
+  Rosé Pine, Solarized Osaka, and Tokyo Night. `mordye dux` uses them with no
+  extra step, so your terminal matches the theme, including themes like
+  Dracula that put colors in slots by name. These themes' terminal colors
+  change from Mordye's guesses to the official ones, and `sources` shows them
+  as `palette.<id>`. Mordye's own input takes a new `palette` field to choose
+  one by id.
+- **Each release ships its license notices.** The tarball and RPM now include
+  Mordye's license and the license of every bundled palette.
 - **The cursor follows the accent only when there is one.** On a theme with an
   accent menu, the terminal cursor takes the accent you chose, even over a
   terminal palette's own cursor. On a theme without one, it's now the
@@ -26,8 +31,8 @@ moves them under a version heading when it cuts the release.
   palette is lowercase `#rrggbb`.
 - **Status colors match the terminal palette.** On a theme with no `error`,
   `warning`, or `info` color, those come from the terminal red, yellow, and
-  blue. They now use the terminal palette's own colors when you pass one,
-  matching what your terminal shows.
+  blue. They now use the theme's terminal palette when it has one, matching
+  what your terminal shows.
 
 ## 0.1.0
 

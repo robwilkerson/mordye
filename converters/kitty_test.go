@@ -1,4 +1,4 @@
-package kitty
+package converters
 
 import (
 	"os"
@@ -6,17 +6,17 @@ import (
 	"testing"
 )
 
-func port(t *testing.T, name string) []byte {
+func kittyPort(t *testing.T, name string) []byte {
 	t.Helper()
-	b, err := os.ReadFile("testdata/" + name + ".conf")
+	b, err := os.ReadFile("testdata/kitty/" + name + ".conf")
 	if err != nil {
 		t.Fatal(err)
 	}
 	return b
 }
 
-func TestReadsAllSixteenColors(t *testing.T) {
-	got, err := Parse(port(t, "dracula"))
+func TestKittyReadsAllSixteenColors(t *testing.T) {
+	got, err := Kitty(kittyPort(t, "dracula"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,8 +36,8 @@ func TestReadsAllSixteenColors(t *testing.T) {
 	}
 }
 
-func TestReadsTheTerminalFields(t *testing.T) {
-	got, err := Parse(port(t, "catppuccin-mocha"))
+func TestKittyReadsTheTerminalFields(t *testing.T) {
+	got, err := Kitty(kittyPort(t, "catppuccin-mocha"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,59 +57,59 @@ func TestReadsTheTerminalFields(t *testing.T) {
 
 // Dracula sets cursor_text_color to "background", kitty's way of saying "use
 // another color". There's no hex to pass through, so Mordye fills it.
-func TestAKeywordInPlaceOfAColorIsLeftForMordye(t *testing.T) {
-	got, err := Parse(port(t, "dracula"))
+func TestKittyLeavesAKeywordInPlaceOfAColorForMordye(t *testing.T) {
+	got, err := Kitty(kittyPort(t, "dracula"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if got.CursorText != "" {
 		t.Errorf("cursor_text = %q, want it left empty", got.CursorText)
 	}
-	got, err = Parse([]byte("color1 #ff5555\nselection_foreground none\ncursor NONE\n"))
+	got, err = Kitty([]byte("color1 #ff5555\nselection_foreground none\ncursor NONE\n"))
 	if err != nil || got.SelectionFg != "" || got.Cursor != "" {
 		t.Errorf("selection_fg %q, cursor %q, err %v; want both left empty", got.SelectionFg, got.Cursor, err)
 	}
 }
 
-func TestTheLastSettingWins(t *testing.T) {
-	got, err := Parse([]byte("color1 #111111\ncolor1 #222222\n"))
+func TestKittyTheLastSettingWins(t *testing.T) {
+	got, err := Kitty([]byte("color1 #111111\ncolor1 #222222\n"))
 	if err != nil || got.Normal["red"] != "#222222" {
 		t.Errorf("red %q, err %v; want the later #222222, as kitty reads it", got.Normal["red"], err)
 	}
 }
 
-func TestRejectsAColorMordyeCannotRead(t *testing.T) {
+func TestKittyRejectsAColorMordyeCannotRead(t *testing.T) {
 	// Each keyword belongs to particular fields, as in kitty: "none" to the
 	// cursor and selection, "background" to the cursor text only.
 	for _, conf := range []string{
 		"color1 red\n", "color1 #f00\n", "foreground\n", "color1 none\n",
 		"foreground none\n", "background background\n", "cursor background\n", "cursor_text_color none\n",
 	} {
-		_, err := Parse([]byte(conf))
+		_, err := Kitty([]byte(conf))
 		if err == nil || !strings.Contains(err.Error(), "line 1") {
-			t.Errorf("Parse(%q): err = %v, want one naming line 1", conf, err)
+			t.Errorf("Kitty(%q): err = %v, want one naming line 1", conf, err)
 		}
 	}
 }
 
 // A file that sets no terminal color is the wrong file, such as a Dux theme
 // passed in by mistake. A partial palette is still fine.
-func TestRejectsAFileWithNoTerminalColors(t *testing.T) {
+func TestKittyRejectsAFileWithNoTerminalColors(t *testing.T) {
 	for _, conf := range []string{"", "# just a comment\n", "{\n  \"primary\": \"#ff5555\"\n}\n"} {
-		_, err := Parse([]byte(conf))
+		_, err := Kitty([]byte(conf))
 		if err == nil || !strings.Contains(err.Error(), "no terminal colors") {
-			t.Errorf("Parse(%q): err = %v, want one saying it has no terminal colors", conf, err)
+			t.Errorf("Kitty(%q): err = %v, want one saying it has no terminal colors", conf, err)
 		}
 	}
-	if _, err := Parse([]byte("color1 #ff5555\n")); err != nil {
+	if _, err := Kitty([]byte("color1 #ff5555\n")); err != nil {
 		t.Errorf("a partial palette: err = %v, want none", err)
 	}
 }
 
 // An included file could hold colors Mordye never sees, so it says so rather
 // than completing the palette without them.
-func TestRejectsAnInclude(t *testing.T) {
-	_, err := Parse([]byte("# colors\ninclude dracula.conf\n"))
+func TestKittyRejectsAnInclude(t *testing.T) {
+	_, err := Kitty([]byte("# colors\ninclude dracula.conf\n"))
 	if err == nil || !strings.Contains(err.Error(), "include") {
 		t.Errorf("err = %v, want one naming the include", err)
 	}

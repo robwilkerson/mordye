@@ -1,0 +1,43 @@
+{
+  "id": "kanagawa-light",
+  "mode": "light",
+  "source": {
+    "repo": "rebelot/kanagawa.nvim",
+    "commit": "bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3",
+    "path": "extras/kitty/kanagawa_light.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/rebelot/kanagawa.nvim/blob/bb85e4bfc8d89b0e62c8fa53ccdd13d12e2f77b3/LICENSE",
+    "notice": "notices/rebelot-kanagawa.nvim.txt"
+  },
+  "terminal": {
+    "background": "#f2ecbc",
+    "foreground": "#545464",
+    "cursor": "#43436c",
+    "cursor_text": "#f2ecbc",
+    "selection_bg": "#c9cbd1",
+    "selection_fg": "#43436c",
+    "normal": {
+      "black": "#1F1F28",
+      "blue": "#4d699b",
+      "cyan": "#597b75",
+      "green": "#6f894e",
+      "magenta": "#b35b79",
+      "red": "#c84053",
+      "white": "#545464",
+      "yellow": "#77713f"
+    },
+    "bright": {
+      "black": "#8a8980",
+      "blue": "#6693bf",
+      "cyan": "#5e857a",
+      "green": "#6e915f",
+      "magenta": "#624c83",
+      "red": "#d7474b",
+      "white": "#43436c",
+      "yellow": "#836f4a"
+    }
+  }
+}

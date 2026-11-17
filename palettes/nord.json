@@ -1,0 +1,40 @@
+{
+  "id": "nord",
+  "mode": "dark",
+  "source": {
+    "repo": "nordtheme/xresources",
+    "commit": "2e4d108bcf044d28469e098979bf6294329813fc",
+    "path": "src/nord",
+    "format": "xresources"
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/nordtheme/xresources/blob/2e4d108bcf044d28469e098979bf6294329813fc/license",
+    "notice": "notices/nordtheme-xresources.txt"
+  },
+  "terminal": {
+    "background": "#2E3440",
+    "foreground": "#D8DEE9",
+    "cursor": "#D8DEE9",
+    "normal": {
+      "black": "#3B4252",
+      "blue": "#81A1C1",
+      "cyan": "#88C0D0",
+      "green": "#A3BE8C",
+      "magenta": "#B48EAD",
+      "red": "#BF616A",
+      "white": "#E5E9F0",
+      "yellow": "#EBCB8B"
+    },
+    "bright": {
+      "black": "#4C566A",
+      "blue": "#81A1C1",
+      "cyan": "#8FBCBB",
+      "green": "#A3BE8C",
+      "magenta": "#B48EAD",
+      "red": "#BF616A",
+      "white": "#ECEFF4",
+      "yellow": "#EBCB8B"
+    }
+  }
+}

@@ -4,7 +4,7 @@ Date: 2026-11-11
 
 ## Status
 
-Accepted.
+Superseded by [ADR 0002](0002-bundled-terminal-palettes.md). Kitty is still the first format Mordye converts, but ahead of time; the runtime flag never shipped.
 
 ## Context
 
