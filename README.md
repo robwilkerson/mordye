@@ -10,7 +10,46 @@ How Mordye stays true to the theme:
 
 - **A color the theme defines is used as-is.** Its red is your red, and its yellow is your yellow.
 - **A missing color is generated at its usual hue**, at the palette's own chroma and lightness, so a muted theme gets a muted green and a pastel theme a pastel one.
-- **The accent stays yours.** Changing it moves `primary` and `secondary`, and leaves every other color alone.
+- **The accent shows where it belongs.** Changing it moves `primary`, `secondary`, and `tertiary`, the text on `primary` (`on_primary`) when the theme doesn't set one, and the terminal cursor. The 16 terminal colors never move, so red still means red in `git diff` and blue is still a directory in `ls`.
+
+## How It Works
+
+Every color in the output comes from the first source on its row that has one. Mordye only reaches further down a row when the theme leaves a gap.
+
+| Color | Where It Comes From, in Order |
+|---|---|
+| `primary`, `secondary`, `tertiary` | The accent you chose, on a theme with an accent menu. Then the theme's own role. A missing `secondary` copies `primary`, and `tertiary` copies `secondary`. |
+| `error`, `warning`, `info` | The theme's own role. Then the terminal red, yellow, or blue, which may be one of the theme's swatches. |
+| Other interface roles | The theme's own role. Then a rule built from the theme's other colors ([Surfaces](#surfaces), [Interface Roles](#interface-roles)). |
+| The 16 terminal colors | The [terminal palette](#terminal-colors) you pass. Then a theme color matched to the slot by hue. Then a color generated at the slot's usual hue. Black, white, and the brights follow their own rules. |
+| Terminal cursor | The accent you chose. Then the terminal palette. Then the foreground. |
+| Terminal background, foreground, and selection | The terminal palette. Then the matching interface role. |
+
+The accent never reaches the 16 terminal colors, so red still means red in `git diff`, and blue is still a directory in `ls`.
+
+### Why Am I Seeing This Color?
+
+Look the field up in the output's `sources` map. Each value names where its color came from:
+
+- **`colors.<role>`:** the theme defined it.
+- **`swatches.<name>`:** one of the theme's extra colors, such as Catppuccin's `mauve`.
+- **`terminal`:** the terminal palette you passed.
+- **`ui.<role>`:** copied from an interface role.
+- **`generated`:** the theme had nothing usable, so Mordye made it.
+- **A note, such as `bright.white, dimmer`:** derived from another field.
+
+For example, Catppuccin Mocha with the green accent and no terminal palette:
+
+```json
+"ui.primary": "colors.primary",
+"ui.tertiary": "ui.secondary",
+"terminal.normal.red": "colors.error",
+"terminal.normal.magenta": "swatches.mauve",
+"terminal.normal.white": "bright.white, dimmer",
+"terminal.cursor": "ui.primary"
+```
+
+Primary is the theme's own (the green accent), and tertiary copies secondary. Red is the theme's `error` color, and magenta is Catppuccin's mauve. White is a dimmer bright white, and the cursor shows the accent.
 
 ## How It Compares
 
@@ -27,6 +66,37 @@ Dux is here because it's the shell I use, and the comparison is a fair one rathe
 **Tokyo Night.** The theme file holds fewer of its terminal colors, so Mordye matches three and generates a softer green and yellow. Dux builds its own palette from the accent, so its colors differ from the official ones, and Tokyo Night's cyan and blue land in its magenta and cyan slots.
 
 Dux's rows are the palettes it generated on 2026-11-15. `bin/readme-swatches.sh` redraws both images, running Mordye for its rows.
+
+## Install
+
+Each [release](https://github.com/robwilkerson/mordye/releases/latest) has Linux builds for x86_64 (`amd64`) and ARM (`arm64`), as a tarball or an RPM. Substitute the version and architecture you want:
+
+```bash
+VERSION=0.1.0 ARCH=amd64
+curl -LO "https://github.com/robwilkerson/mordye/releases/download/v${VERSION}/mordye_${VERSION}_linux_${ARCH}.tar.gz"
+tar -xzf "mordye_${VERSION}_linux_${ARCH}.tar.gz" mordye
+install -m 755 mordye ~/.local/bin/
+
+# or, on Fedora and other RPM systems:
+sudo dnf install "https://github.com/robwilkerson/mordye/releases/download/v${VERSION}/mordye_${VERSION}_linux_${ARCH}.rpm"
+```
+
+Each release's `checksums.txt` lists the SHA-256 of every file, to check a download with `sha256sum --check --ignore-missing checksums.txt`.
+
+On another platform, or to build from source, use Go 1.27 or later:
+
+```bash
+go install github.com/robwilkerson/mordye/cmd/mordye@latest
+```
+
+Check that it worked:
+
+```bash
+mordye --version
+echo '{"version":1,"colors":{"primary":"#c6a0f6","on_surface":"#cad3f5"}}' | mordye
+```
+
+The first prints `mordye` and its version. The second prints a complete palette as JSON.
 
 ## How It Fits Together
 
@@ -63,11 +133,13 @@ A source with no built-in adapter can write the input format below and pipe it i
 The input is a sparse palette:
 
 - **`colors`:** any subset of the known roles. Only `primary` and `on_surface` are required.
-- **`swatches`:** extra theme colors with no role, such as Catppuccin's accent menu. They can fill terminal slots but never become interface roles.
+- **`swatches`:** extra theme colors with no role, such as Catppuccin's accent menu. They can fill terminal slots. The only interface roles one can reach are a missing `error`, `warning`, or `info`, by way of the terminal red, yellow, or blue (see [Interface Roles](#interface-roles)).
 - **`accent`:** on a theme with an accent menu, the swatch you chose. It keeps `primary` and `secondary` out of the terminal colors, so changing the accent never moves them.
-- **`terminal`:** any terminal colors the source already has. These pass through unchanged.
+- **`terminal`:** any terminal colors the source already has. These pass through unchanged, except that a chosen `accent` keeps the cursor.
 
 The palette's `name` and every swatch name must start with an ASCII letter or digit, then use only letters, digits, `.`, `_`, and `-`. Names come from theme files and end up in generated config, so Mordye rejects anything else rather than pass it along.
+
+Input colors may use either case. Every output color is lowercase `#rrggbb`, including the ones that pass through, so you can compare colors as strings.
 
 The output always has the same 37 fields:
 
@@ -97,7 +169,7 @@ A theme that defines one rung gives no spacing to copy, so Mordye uses Catppucci
 
 ### Terminal Colors
 
-**Pass the theme's terminal palette whenever one exists.** It's the only way to get the theme's exact terminal colors. Most themes publish an official terminal port, the canonical terminal palette as the theme's authors define it, with a color for all 16 slots. Pass the path to one with `--terminal-palette`, and its colors (plus cursor and selection) pass through unchanged. Mordye fills only what the file leaves out.
+**Pass the theme's terminal palette whenever one exists.** It's the only way to get the theme's exact terminal colors. Most themes publish an official terminal port, the canonical terminal palette as the theme's authors define it, with a color for all 16 slots. Pass the path to one with `--terminal-palette`, and its colors (plus cursor and selection) pass through unchanged. Mordye fills only what the file leaves out. The one exception is the cursor on a theme with an accent menu: it shows the accent you chose, over the port's.
 
 **Getting a port:** Mordye doesn't download anything, so you need the file on disk first. Look for a kitty port linked from the theme's own site or repository. If the theme doesn't have one, kitty's [theme collection](https://github.com/kovidgoyal/kitty-themes) probably does. On a theme with several flavors, grab the port for the flavor you chose, since each flavor has its own file.
 
@@ -120,11 +192,11 @@ Black is the highest surface rung the theme itself defines, and bright black is 
 ### Interface Roles
 
 - `secondary` falls back to `primary`, and `tertiary` to `secondary`.
-- `error`, `warning`, and `info` fall back to the terminal red, yellow, and blue.
+- `error`, `warning`, and `info` fall back to the terminal red, yellow, and blue. Those may hold a swatch, since the theme's own red beats a generated one.
 - `on_primary` is `background` or `on_surface`, whichever contrasts more with `primary`.
 - `on_surface_variant` is `on_surface`, a step dimmer.
 
-Any non-ANSI terminal field a port doesn't set comes from the interface roles: the background from `background`, the foreground from `on_surface`, the cursor from `primary`, and the selection from `surface_container_high`.
+Any non-ANSI terminal field a port doesn't set comes from the interface roles: the background from `background`, the foreground from `on_surface`, and the selection from `surface_container_high`. The cursor is chrome, so on a theme with an accent menu it takes `primary`, the accent you chose. On other themes it matches the foreground, as most official ports draw it.
 
 ### Fixed Numbers
 
@@ -149,8 +221,8 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 
 - **Dark themes only.** Mordye completes a theme's dark variant, and its tuning assumes a dark background. Light themes are [#27](https://github.com/robwilkerson/mordye/issues/27).
 - **One built-in source.** Dux Shell is the only theme adapter so far, and kitty the only terminal port format. Any other source has to write Mordye's input format itself.
-- **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version once releases exist.
-- **No releases yet.** Installing means building from source with Go 1.27+ ([#2](https://github.com/robwilkerson/mordye/issues/2), [#3](https://github.com/robwilkerson/mordye/issues/3)).
+- **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version.
+- **Linux builds only.** Releases ship Linux binaries; other platforms build from source with `go install`.
 
 ## Credits
 

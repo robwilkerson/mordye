@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strings"
 )
 
 // Version is the input and output format version.
@@ -25,7 +26,9 @@ type Input struct {
 	// and on_surface are required.
 	Colors map[string]string `json:"colors"`
 	// Swatches are extra theme colors with no role, such as Catppuccin's
-	// accent menu. They are candidates for terminal slots only.
+	// accent menu. They are candidates for terminal slots, and reach the
+	// interface only as a missing error, warning, or info, by way of the
+	// terminal red, yellow, or blue.
 	Swatches map[string]string `json:"swatches,omitempty"`
 	// Accent names the swatch the user chose as their accent, on a theme
 	// that offers a menu of them. It tells Mordye that primary and secondary
@@ -35,7 +38,7 @@ type Input struct {
 	// it empty for a theme with one fixed palette.
 	Accent string `json:"accent,omitempty"`
 	// Terminal holds any terminal colors the source already has. Each one
-	// passes through unchanged.
+	// passes through unchanged, except the cursor when there's an Accent.
 	Terminal TerminalInput `json:"terminal,omitzero"`
 }
 
@@ -492,9 +495,16 @@ func (p *builder) fillUI() {
 		p.ui["on_surface_variant"] = lch{L: t.L - 0.1, C: t.C, H: t.H}.hex()
 		p.src["ui.on_surface_variant"] = "ui.on_surface, dimmer"
 	}
+	// A missing status role takes the terminal's red, yellow, or blue as the
+	// terminal will show it: the source's own color passes through later, so
+	// it's taken here first, over any color Mordye picked for the slot.
 	for role, slot := range map[string]string{"error": "red", "warning": "yellow", "info": "blue"} {
 		if _, ok := p.ui[role]; !ok {
-			p.ui[role], p.src["ui."+role] = p.term["normal."+slot], "terminal.normal."+slot
+			hex, ok := p.in.Terminal.Normal[slot]
+			if !ok {
+				hex = p.term["normal."+slot]
+			}
+			p.ui[role], p.src["ui."+role] = hex, "terminal.normal."+slot
 		}
 	}
 	if _, ok := p.ui["on_primary"]; !ok {
@@ -515,22 +525,43 @@ func abs(x float64) float64 {
 	return x
 }
 
+// fillTerminalExtras fills the non-ANSI terminal fields from the interface
+// roles. The cursor is chrome rather than a color with a meaning, so on a
+// theme with an accent menu it shows the accent the user chose. Otherwise it's
+// the foreground, as most themes' official terminal ports draw it.
 func (p *builder) fillTerminalExtras() {
-	for field, role := range map[string]string{
+	roles := map[string]string{
 		"background": "background", "foreground": "on_surface",
-		"cursor": "primary", "cursor_text": "on_primary",
+		"cursor": "on_surface", "cursor_text": "background",
 		"selection_bg": "surface_container_high", "selection_fg": "on_surface",
-	} {
+	}
+	if p.in.Accent != "" {
+		roles["cursor"], roles["cursor_text"] = "primary", "on_primary"
+	}
+	for field, role := range roles {
 		p.set(field, p.ui[role], "ui."+role)
 	}
 }
 
-// passThrough applies the source's own terminal colors over everything else.
+// passThrough applies the source's own terminal colors over everything else,
+// except that a chosen accent keeps the cursor: it's chrome, and showing the
+// accent there is the point of choosing one.
 func (p *builder) passThrough() {
 	t := p.in.Terminal
 	for field, hex := range t.scalars() {
-		if hex != "" {
+		accentOwns := p.in.Accent != "" && (field == "cursor" || field == "cursor_text")
+		if hex != "" && !accentOwns {
 			p.set(field, hex, "terminal")
+		}
+	}
+	// Without an accent the cursor is the foreground, so a source that sets its
+	// own foreground but no cursor gets a cursor in that foreground.
+	if p.in.Accent == "" {
+		if t.Cursor == "" && t.Foreground != "" {
+			p.set("cursor", t.Foreground, "terminal.foreground")
+		}
+		if t.CursorText == "" && t.Background != "" {
+			p.set("cursor_text", t.Background, "terminal.background")
 		}
 	}
 	for slot, hex := range t.Normal {
@@ -541,12 +572,15 @@ func (p *builder) passThrough() {
 	}
 }
 
+// output assembles the palette. Every color is lowercased here, whatever case
+// it arrived in, so callers can compare colors as strings.
 func (p *builder) output() Output {
+	term := func(field string) string { return strings.ToLower(p.term[field]) }
 	ansi := func(set string) ANSI {
-		g := func(slot string) string { return p.term[set+"."+slot] }
+		g := func(slot string) string { return term(set + "." + slot) }
 		return ANSI{g("black"), g("red"), g("green"), g("yellow"), g("blue"), g("magenta"), g("cyan"), g("white")}
 	}
-	u := func(role string) string { return p.ui[role] }
+	u := func(role string) string { return strings.ToLower(p.ui[role]) }
 	mode := p.in.Mode
 	if mode == "" {
 		mode = "dark"
@@ -561,9 +595,9 @@ func (p *builder) output() Output {
 			u("surface_container_highest"), u("outline"), u("on_surface"), u("on_surface_variant"),
 		},
 		Terminal: Terminal{
-			Background: p.term["background"], Foreground: p.term["foreground"],
-			Cursor: p.term["cursor"], CursorText: p.term["cursor_text"],
-			SelectionBg: p.term["selection_bg"], SelectionFg: p.term["selection_fg"],
+			Background: term("background"), Foreground: term("foreground"),
+			Cursor: term("cursor"), CursorText: term("cursor_text"),
+			SelectionBg: term("selection_bg"), SelectionFg: term("selection_fg"),
 			Normal: ansi("normal"), Bright: ansi("bright"),
 		},
 		Sources: p.src,
