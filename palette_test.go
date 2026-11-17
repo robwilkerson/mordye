@@ -3,6 +3,7 @@ package mordye
 import (
 	"encoding/json"
 	"math"
+	"regexp"
 	"strings"
 	"testing"
 )
@@ -166,11 +167,107 @@ func TestThemeWithoutAccentChoiceUsesPrimaryForSlots(t *testing.T) {
 	}
 }
 
-func TestSwatchesNeverBecomeInterfaceRoles(t *testing.T) {
+// A source's own terminal red wins over a swatch in the terminal, so a missing
+// error role takes that red too, rather than the swatch the terminal no
+// longer shows.
+func TestMissingStatusRolesMatchTheSourcesTerminalColors(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#c6a0f6", "on_surface": "#cad3f5"},
+		Swatches: map[string]string{"red": "#ed8796"},
+		Terminal: TerminalInput{Normal: map[string]string{"red": "#ff5555"}},
+	}
+	out := complete(t, in)
+	if out.UI.Error != out.Terminal.Normal.Red || out.UI.Error != "#ff5555" {
+		t.Errorf("error = %s, terminal red = %s; want both the source's #ff5555",
+			out.UI.Error, out.Terminal.Normal.Red)
+	}
+}
+
+func TestSwatchesNeverBecomeTheAccent(t *testing.T) {
 	in := macchiato()
 	delete(in.Colors, "secondary")
-	if got := complete(t, in).UI.Secondary; got != in.Colors["primary"] {
-		t.Errorf("secondary = %s, want it to fall back to primary, not a swatch", got)
+	out := complete(t, in)
+	if out.UI.Secondary != in.Colors["primary"] || out.UI.Tertiary != in.Colors["primary"] {
+		t.Errorf("secondary %s, tertiary %s; want both to fall back to primary %s, not a swatch",
+			out.UI.Secondary, out.UI.Tertiary, in.Colors["primary"])
+	}
+	// The green swatch shares primary's hex, so only the sources can tell
+	// a fallback from a swatch.
+	if s, ts := out.Sources["ui.secondary"], out.Sources["ui.tertiary"]; s != "ui.primary" || ts != "ui.secondary" {
+		t.Errorf("secondary from %s, tertiary from %s; want ui.primary and ui.secondary", s, ts)
+	}
+}
+
+// A missing status role takes its terminal slot, and that slot may hold one of
+// the theme's swatches: its own red, yellow, or blue beats a generated one.
+func TestMissingStatusRolesTakeTheThemesOwnColors(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#c6a0f6", "on_surface": "#cad3f5"},
+		Swatches: map[string]string{"red": "#ed8796", "yellow": "#eed49f", "blue": "#8aadf4"},
+	}
+	out := complete(t, in)
+	for role, c := range map[string]struct{ got, slot, want string }{
+		"error":   {out.UI.Error, "red", "#ed8796"},
+		"warning": {out.UI.Warning, "yellow", "#eed49f"},
+		"info":    {out.UI.Info, "blue", "#8aadf4"},
+	} {
+		if c.got != c.want || out.Sources["ui."+role] != "terminal.normal."+c.slot {
+			t.Errorf("%s = %s from %s, want the %s swatch %s by way of terminal.normal.%s",
+				role, c.got, out.Sources["ui."+role], c.slot, c.want, c.slot)
+		}
+		if got := out.Sources["terminal.normal."+c.slot]; got != "swatches."+c.slot {
+			t.Errorf("terminal.normal.%s came from %s, want swatches.%s", c.slot, got, c.slot)
+		}
+	}
+}
+
+// Colors arrive in either case, but every output color is lowercase, so
+// callers can compare them as strings.
+func TestEveryOutputColorIsLowercase(t *testing.T) {
+	in := Input{
+		Version:  Version,
+		Colors:   map[string]string{"primary": "#8AADF4", "on_surface": "#CAD3F5"},
+		Swatches: map[string]string{"red": "#ED8796"},
+		Terminal: TerminalInput{Normal: map[string]string{"green": "#A6DA95"}, Cursor: "#F4DBD6"},
+	}
+	b, err := json.Marshal(complete(t, in))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, hex := range regexp.MustCompile(`#[0-9A-Fa-f]{6}`).FindAllString(string(b), -1) {
+		if hex != strings.ToLower(hex) {
+			t.Errorf("output has %s, want every color lowercase", hex)
+		}
+	}
+}
+
+// The cursor is terminal chrome, so it shows the accent a user chose. A theme
+// without an accent menu gets the foreground, as most official ports draw it.
+func TestCursorShowsTheChosenAccentElseTheForeground(t *testing.T) {
+	accented := complete(t, macchiato())
+	if accented.Terminal.Cursor != accented.UI.Primary || accented.Terminal.CursorText != accented.UI.OnPrimary {
+		t.Errorf("with an accent: cursor %s on %s, want primary %s on %s",
+			accented.Terminal.Cursor, accented.Terminal.CursorText, accented.UI.Primary, accented.UI.OnPrimary)
+	}
+	plain := complete(t, sparse())
+	if plain.Terminal.Cursor != plain.UI.OnSurface || plain.Terminal.CursorText != plain.UI.Background {
+		t.Errorf("without an accent: cursor %s on %s, want the foreground %s on %s",
+			plain.Terminal.Cursor, plain.Terminal.CursorText, plain.UI.OnSurface, plain.UI.Background)
+	}
+}
+
+func TestCursorFollowsTheSourcesOwnForegroundWhenItSetsNoCursor(t *testing.T) {
+	in := sparse()
+	in.Terminal = TerminalInput{Foreground: "#ff0000", Background: "#000000"}
+	out := complete(t, in)
+	if out.Terminal.Cursor != "#ff0000" || out.Terminal.CursorText != "#000000" {
+		t.Errorf("cursor %s on %s, want the source's foreground #ff0000 on #000000",
+			out.Terminal.Cursor, out.Terminal.CursorText)
+	}
+	if got := out.Sources["terminal.cursor"]; got != "terminal.foreground" {
+		t.Errorf("cursor came from %s, want terminal.foreground", got)
 	}
 }
 
@@ -212,12 +309,21 @@ func TestStructuralRolesAreNotSlotCandidates(t *testing.T) {
 	}
 }
 
+// The source's terminal colors pass through. A chosen accent is the one
+// exception: it keeps the cursor.
 func TestTerminalColorsFromTheSourcePassThrough(t *testing.T) {
 	in := macchiato()
+	in.Accent = ""
 	in.Terminal = TerminalInput{Normal: map[string]string{"magenta": "#f5bde6"}, Cursor: "#f4dbd6"}
 	out := complete(t, in)
 	if out.Terminal.Normal.Magenta != "#f5bde6" || out.Terminal.Cursor != "#f4dbd6" {
 		t.Errorf("magenta %s, cursor %s; want the source's #f5bde6 and #f4dbd6", out.Terminal.Normal.Magenta, out.Terminal.Cursor)
+	}
+	in.Accent = "green"
+	accented := complete(t, in)
+	if accented.Terminal.Normal.Magenta != "#f5bde6" || accented.Terminal.Cursor != accented.UI.Primary {
+		t.Errorf("with an accent: magenta %s, cursor %s; want the source's #f5bde6 and the accent %s",
+			accented.Terminal.Normal.Magenta, accented.Terminal.Cursor, accented.UI.Primary)
 	}
 	if got := out.Sources["terminal.normal.magenta"]; got != "terminal" {
 		t.Errorf("magenta source = %s, want terminal", got)
