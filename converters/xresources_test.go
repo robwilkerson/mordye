@@ -52,6 +52,18 @@ func TestXresourcesRejectsAColorSetUnderTwoPrefixes(t *testing.T) {
 	}
 }
 
+// X collapses a run of bindings holding a * to a single *, so *color1 and
+// *.color1 name one resource and the later setting wins.
+func TestXresourcesTreatsEquivalentPrefixesAsOne(t *testing.T) {
+	got, err := Xresources([]byte("*color1: #111111\n*.color1: #222222\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Normal["red"] != "#222222" {
+		t.Errorf("red %q, want the later #222222", got.Normal["red"])
+	}
+}
+
 func TestXresourcesLetsALaterSettingReplaceAnEarlierOne(t *testing.T) {
 	got, err := Xresources([]byte("*.color1: #111111\n*.color1: #222222\n"))
 	if err != nil {

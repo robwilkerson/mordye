@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/robwilkerson/mordye"
@@ -13,6 +14,9 @@ import (
 // job, and reading past them could pick the wrong colors, so Xresources
 // rejects them.
 var xresourcesDirectives = map[string]bool{"include": true, "if": true, "ifdef": true, "ifndef": true}
+
+// looseBinding matches a run of bindings that holds a *.
+var looseBinding = regexp.MustCompile(`[.*]*\*[.*]*`)
 
 // Xresources reads the terminal colors from an X resources file, such as
 // Nord's official port. It reads the resources terminals share (foreground,
@@ -61,6 +65,9 @@ func Xresources(conf []byte) (mordye.TerminalInput, error) {
 		if set == nil && field == nil {
 			continue
 		}
+		// X reads a run of bindings holding a * as a single *, so *color1 and
+		// *.color1 name the same resource.
+		prefix = looseBinding.ReplaceAllString(prefix, "*")
 		if was, ok := seen[key]; ok && was.prefix != prefix {
 			return mordye.TerminalInput{}, fmt.Errorf("line %d: %s%s conflicts with line %d's %s%s; X would pick the more specific one",
 				n, prefix, key, was.line, was.prefix, key)
