@@ -185,7 +185,7 @@ Each bundled palette is a theme's official terminal port, made by the theme's ow
 | [Solarized Osaka](https://github.com/craftzdog/solarized-osaka.nvim) | `solarized-osaka-dark`, `solarized-osaka-light` | [craftzdog/solarized-osaka.nvim](https://github.com/craftzdog/solarized-osaka.nvim) | Apache-2.0 |
 | [Tokyo Night](https://github.com/folke/tokyonight.nvim) | `tokyonight-night`, `tokyonight-storm`, `tokyonight-moon`, `tokyonight-day` | [folke/tokyonight.nvim](https://github.com/folke/tokyonight.nvim) | Apache-2.0 |
 
-Light palettes are bundled for when Mordye completes light themes ([#27](https://github.com/robwilkerson/mordye/issues/27)). Each palette file records the exact commit it came from, and each release ships the upstream license notices beside the binary.
+Light palettes are bundled for when Mordye completes light themes ([#27](https://github.com/robwilkerson/mordye/issues/27)). Each palette file records the exact commit it came from, and each release ships the upstream license notices beside the binary. To add a theme's palette, see [CONTRIBUTING.md](CONTRIBUTING.md#adding-a-terminal-palette).
 
 Without a port, each chromatic slot has a usual hue: red, yellow, green, cyan, blue, and magenta. A theme color fills a slot when its hue is within 30° of the slot's, and it can fill only its nearest slot. Near-grays never fill one.
 
