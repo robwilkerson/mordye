@@ -32,9 +32,15 @@ func TestEveryBundledPaletteCompletesAPalette(t *testing.T) {
 // The release ships each palette's license next to the binary, so a notice
 // that's missing would ship a palette without its license.
 func TestEveryBundledPaletteHasItsNotice(t *testing.T) {
-	ids, _ := BundledPaletteIDs()
+	ids, err := BundledPaletteIDs()
+	if err != nil || len(ids) == 0 {
+		t.Fatalf("ids %v, err %v; want the bundled palettes", ids, err)
+	}
 	for _, id := range ids {
-		p, _, _ := BundledPalette(id)
+		p, ok, err := BundledPalette(id)
+		if err != nil || !ok {
+			t.Fatalf("%s: ok %v, err %v", id, ok, err)
+		}
 		if _, err := os.Stat("palettes/" + p.License.Notice); err != nil {
 			t.Errorf("%s: notice %s: %v", id, p.License.Notice, err)
 		}
@@ -78,7 +84,10 @@ func TestInputTerminalColorsWinWholeOverABundledPalette(t *testing.T) {
 // The cache shares one palette across every lookup, so an edit to a returned
 // palette would change what later lookups, and Complete, see.
 func TestEditingAReturnedPaletteLeavesTheBundleUnchanged(t *testing.T) {
-	p, _, _ := BundledPalette("dracula")
+	p, ok, err := BundledPalette("dracula")
+	if err != nil || !ok {
+		t.Fatalf("dracula: ok %v, err %v", ok, err)
+	}
 	p.Terminal.Normal["blue"] = "#010203"
 	p.Terminal.Bright["blue"] = "#010203"
 	again, _, _ := BundledPalette("dracula")
