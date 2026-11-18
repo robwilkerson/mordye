@@ -40,7 +40,7 @@ jobs:
       group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     permissions:
       contents: read
       issues: write # PR comments go through the issues API
@@ -61,6 +61,8 @@ jobs:
           # matters, so the model sees more code around each change and
           # reasons longer about it. PRs are small; the extra cost is modest.
           config.reasoning_effort: high
+          # High effort on a large diff runs past PR-Agent's 120s default.
+          config.ai_timeout: '300'
           config.patch_extra_lines_before: '20'
           config.patch_extra_lines_after: '10'
           config.max_extra_lines_before_dynamic_context: '30'
