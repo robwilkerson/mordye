@@ -35,8 +35,11 @@ reviews:
   suggested_reviewers: false
 
   path_filters:
-    # Upstream theme files, copied unchanged and credited in the README
+    # Upstream theme files and ports, copied unchanged and credited in the
+    # README. Matches ai-review.yml's ignore.glob, so both reviewers see the
+    # same files.
     - "!adapter/*/testdata/**"
+    - "!converters/*/testdata/**"
 
   auto_review:
     enabled: true

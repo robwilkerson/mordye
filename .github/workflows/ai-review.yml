@@ -33,12 +33,13 @@ jobs:
             || startsWith(github.event.comment.body, '/improve')
             || startsWith(github.event.comment.body, '/ask')))
       )
-    # One review per PR at a time; a newer push or command replaces a stale
-    # run. It sits on the job, after the if, so a skipped run (a bot's
-    # comment, say) can't cancel a real review.
+    # A new push supersedes the review in progress. Each command gets its own
+    # group: GitHub keeps only one pending job per group, so a shared one would
+    # drop a queued command when the next arrived. It sits on the job, after
+    # the if, so a skipped run (a bot's comment, say) can't cancel a real one.
     concurrency:
-      group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}
-      cancel-in-progress: true
+      group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}-${{ github.event.comment.id || 'push' }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -63,6 +64,9 @@ jobs:
           config.reasoning_effort: high
           # High effort on a large diff runs past PR-Agent's 120s default.
           config.ai_timeout: '300'
+          # The largest prompt PR-Agent builds. Its 32K default pruned most of
+          # a large PR's files before the model saw them.
+          config.max_model_tokens: '128000'
           config.patch_extra_lines_before: '20'
           config.patch_extra_lines_after: '10'
           config.max_extra_lines_before_dynamic_context: '30'
@@ -72,8 +76,9 @@ jobs:
           # they live; it's read from the target branch, so a PR that changes a
           # rule is reviewed against the old one.
           config.repo_context_files: '["CLAUDE.md"]'
-          # Upstream theme fixtures, copied unchanged; nothing to review.
-          ignore.glob: '["adapter/*/testdata/**"]'
+          # Upstream theme fixtures, copied unchanged; nothing to review. Matches
+          # .coderabbit.yaml's path filters, so both reviewers see the same files.
+          ignore.glob: '["adapter/*/testdata/**", "converters/*/testdata/**"]'
           # Review only. /describe would rewrite the PR body, and /improve
           # doubles the cost; both stay available on demand.
           github_action_config.auto_review: 'true'
@@ -85,3 +90,15 @@ jobs:
           # Labels follow the repo's own type and priority scheme.
           pr_reviewer.enable_review_labels_security: 'false'
           pr_reviewer.enable_review_labels_effort: 'false'
+          # The most findings one /review reports; PR-Agent's default is 3.
+          pr_reviewer.num_max_findings: '10'
+          # Each finding goes on the lines it's about; only findings that can't
+          # be placed stay in the summary comment.
+          pr_reviewer.inline_key_issues: 'true'
+          # Quiet by design: drop the summary's intro line and its effort and
+          # tests rows, which carry no findings, and the comment announcing an
+          # in-place update.
+          pr_reviewer.enable_intro_text: 'false'
+          pr_reviewer.require_estimate_effort_to_review: 'false'
+          pr_reviewer.require_tests_review: 'false'
+          pr_reviewer.final_update_message: 'false'
