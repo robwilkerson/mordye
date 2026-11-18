@@ -131,6 +131,11 @@ func check() error {
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)
 		}
+		// The files compared below are named from the id, so a file under
+		// another name would never be compared with its source.
+		if want := filepath.Join(dir, p.ID+".json"); path != want {
+			return fmt.Errorf("%s holds palette %q; it belongs at %s", path, p.ID, want)
+		}
 		s, err := specOf(p)
 		if err != nil {
 			return fmt.Errorf("%s: %w", path, err)

@@ -57,6 +57,26 @@ func TestSpecOfRejectsALicenseFromAnotherCommit(t *testing.T) {
 	}
 }
 
+// check names the files it compares from each palette's id, so a file under
+// another name would never be compared. It fails before any fetch.
+func TestCheckRejectsAPaletteFileNamedForAnotherID(t *testing.T) {
+	b, err := os.ReadFile("../../palettes/catppuccin-mocha.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Chdir(t.TempDir())
+	if err := os.Mkdir(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(dir+"/nord.json", b, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	err = check()
+	if err == nil || !strings.Contains(err.Error(), "nord.json") || !strings.Contains(err.Error(), "catppuccin-mocha") {
+		t.Errorf("err = %v, want one naming nord.json and the id it holds", err)
+	}
+}
+
 // Both fail before any fetch, so a bad spec never reaches the network.
 func TestBuildRejectsAMovableCommitOrAnUnknownFormat(t *testing.T) {
 	for _, c := range []struct {
