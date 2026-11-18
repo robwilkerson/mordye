@@ -75,6 +75,19 @@ func TestInputTerminalColorsWinWholeOverABundledPalette(t *testing.T) {
 	}
 }
 
+// The cache shares one palette across every lookup, so an edit to a returned
+// palette would change what later lookups, and Complete, see.
+func TestEditingAReturnedPaletteLeavesTheBundleUnchanged(t *testing.T) {
+	p, _, _ := BundledPalette("dracula")
+	p.Terminal.Normal["blue"] = "#010203"
+	p.Terminal.Bright["blue"] = "#010203"
+	again, _, _ := BundledPalette("dracula")
+	if again.Terminal.Normal["blue"] != "#bd93f9" || again.Terminal.Bright["blue"] != "#d6acff" {
+		t.Errorf("blue %s, bright blue %s; an edit to a returned palette reached the bundle",
+			again.Terminal.Normal["blue"], again.Terminal.Bright["blue"])
+	}
+}
+
 func TestAnUnknownPaletteIsAnError(t *testing.T) {
 	in := minimalInput()
 	in.Palette = "dracula-pro"

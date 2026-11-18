@@ -5,6 +5,7 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"maps"
 	"path"
 	"slices"
 	"strings"
@@ -95,13 +96,16 @@ func ParsePalette(b []byte) (Palette, error) {
 	return p, nil
 }
 
-// BundledPalette returns the bundled palette with this id.
+// BundledPalette returns the bundled palette with this id. Its color maps are
+// copies, so an edit to them can't reach the cache every lookup shares.
 func BundledPalette(id string) (Palette, bool, error) {
 	all, err := bundledPalettes()
 	if err != nil {
 		return Palette{}, false, err
 	}
 	p, ok := all[id]
+	p.Terminal.Normal = maps.Clone(p.Terminal.Normal)
+	p.Terminal.Bright = maps.Clone(p.Terminal.Bright)
 	return p, ok, nil
 }
 
