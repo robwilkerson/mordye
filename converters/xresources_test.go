@@ -43,6 +43,25 @@ func TestXresourcesReadsAnyResourcePrefix(t *testing.T) {
 	}
 }
 
+// X picks the more specific prefix whatever the order, so last-wins would
+// read the wrong color; the converter refuses rather than guess.
+func TestXresourcesRejectsAColorSetUnderTwoPrefixes(t *testing.T) {
+	_, err := Xresources([]byte("URxvt.color1: #111111\n*.color1: #222222\n"))
+	if err == nil || !strings.Contains(err.Error(), "line 2") || !strings.Contains(err.Error(), "line 1") {
+		t.Errorf("err = %v, want one naming lines 1 and 2", err)
+	}
+}
+
+func TestXresourcesLetsALaterSettingReplaceAnEarlierOne(t *testing.T) {
+	got, err := Xresources([]byte("*.color1: #111111\n*.color1: #222222\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Normal["red"] != "#222222" {
+		t.Errorf("red %q, want the later #222222", got.Normal["red"])
+	}
+}
+
 func TestXresourcesRejectsConditionals(t *testing.T) {
 	_, err := Xresources([]byte("#ifdef DARK\n*.color0: #000000\n#endif\n"))
 	if err == nil || !strings.Contains(err.Error(), "ifdef") {
