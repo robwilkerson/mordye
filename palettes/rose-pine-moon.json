@@ -1,0 +1,43 @@
+{
+  "id": "rose-pine-moon",
+  "mode": "dark",
+  "source": {
+    "repo": "rose-pine/kitty",
+    "commit": "efd4f01cb9887feaa7114ff21a887464295d0205",
+    "path": "dist/rose-pine-moon.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/rose-pine/kitty/blob/efd4f01cb9887feaa7114ff21a887464295d0205/LICENSE",
+    "notice": "notices/rose-pine-kitty.txt"
+  },
+  "terminal": {
+    "background": "#232136",
+    "foreground": "#e0def4",
+    "cursor": "#56526e",
+    "cursor_text": "#e0def4",
+    "selection_bg": "#44415a",
+    "selection_fg": "#e0def4",
+    "normal": {
+      "black": "#393552",
+      "blue": "#9ccfd8",
+      "cyan": "#ea9a97",
+      "green": "#3e8fb0",
+      "magenta": "#c4a7e7",
+      "red": "#eb6f92",
+      "white": "#e0def4",
+      "yellow": "#f6c177"
+    },
+    "bright": {
+      "black": "#6e6a86",
+      "blue": "#9ccfd8",
+      "cyan": "#ea9a97",
+      "green": "#3e8fb0",
+      "magenta": "#c4a7e7",
+      "red": "#eb6f92",
+      "white": "#e0def4",
+      "yellow": "#f6c177"
+    }
+  }
+}

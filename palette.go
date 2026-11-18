@@ -40,6 +40,10 @@ type Input struct {
 	// Terminal holds any terminal colors the source already has. Each one
 	// passes through unchanged, except the cursor when there's an Accent.
 	Terminal TerminalInput `json:"terminal,omitzero"`
+	// Palette names a bundled terminal palette (see BundledPaletteIDs). It
+	// fills Terminal when the source has no terminal colors of its own; when
+	// it has some, those win whole, so two palettes never mix.
+	Palette string `json:"palette,omitempty"`
 }
 
 // TerminalInput is any subset of the output's terminal fields.
@@ -65,6 +69,16 @@ func (t TerminalInput) scalars() map[string]string {
 	}
 }
 
+// empty reports whether t sets no color at all.
+func (t TerminalInput) empty() bool {
+	for _, hex := range t.scalars() {
+		if hex != "" {
+			return false
+		}
+	}
+	return len(t.Normal) == 0 && len(t.Bright) == 0
+}
+
 // Output is a complete palette. Every field is always set.
 type Output struct {
 	Version  int      `json:"version"`
@@ -73,8 +87,9 @@ type Output struct {
 	UI       UI       `json:"ui"`
 	Terminal Terminal `json:"terminal"`
 	// Sources records where each color came from: "colors.<role>",
-	// "swatches.<name>", "terminal" (passed through), "generated", or a
-	// note on how it was derived from another field.
+	// "swatches.<name>", "terminal" (passed through), "palette.<id>" (from a
+	// bundled palette), "generated", or a note on how it was derived from
+	// another field.
 	Sources map[string]string `json:"sources"`
 }
 
@@ -182,10 +197,24 @@ type candidate struct {
 
 // Complete fills every gap in a sparse palette.
 func Complete(in Input) (Output, error) {
+	termSrc := "terminal"
+	if in.Palette != "" {
+		pal, ok, err := BundledPalette(in.Palette)
+		if err != nil {
+			return Output{}, err
+		}
+		if !ok {
+			ids, _ := BundledPaletteIDs()
+			return Output{}, fmt.Errorf("palette %q is not bundled; bundled: %v", in.Palette, ids)
+		}
+		if in.Terminal.empty() {
+			in.Terminal, termSrc = pal.Terminal, "palette."+pal.ID
+		}
+	}
 	if err := validate(in); err != nil {
 		return Output{}, err
 	}
-	p := &builder{in: in, ui: map[string]string{}, term: map[string]string{}, src: map[string]string{}}
+	p := &builder{in: in, termSrc: termSrc, ui: map[string]string{}, term: map[string]string{}, src: map[string]string{}}
 	for role, hex := range in.Colors {
 		p.ui[role], p.src["ui."+role] = hex, "colors."+role
 	}
@@ -273,10 +302,13 @@ func validate(in Input) error {
 }
 
 type builder struct {
-	in   Input
-	ui   map[string]string // role -> hex
-	term map[string]string // "normal.red", "cursor", ... -> hex
-	src  map[string]string // output field -> where it came from
+	in Input
+	// termSrc is where in.Terminal came from, for sources: "terminal" or
+	// "palette.<id>".
+	termSrc string
+	ui      map[string]string // role -> hex
+	term    map[string]string // "normal.red", "cursor", ... -> hex
+	src     map[string]string // output field -> where it came from
 }
 
 func (p *builder) lchOf(hex string) lch {
@@ -551,24 +583,24 @@ func (p *builder) passThrough() {
 	for field, hex := range t.scalars() {
 		accentOwns := p.in.Accent != "" && (field == "cursor" || field == "cursor_text")
 		if hex != "" && !accentOwns {
-			p.set(field, hex, "terminal")
+			p.set(field, hex, p.termSrc)
 		}
 	}
 	// Without an accent the cursor is the foreground, so a source that sets its
 	// own foreground but no cursor gets a cursor in that foreground.
 	if p.in.Accent == "" {
 		if t.Cursor == "" && t.Foreground != "" {
-			p.set("cursor", t.Foreground, "terminal.foreground")
+			p.set("cursor", t.Foreground, p.termSrc+".foreground")
 		}
 		if t.CursorText == "" && t.Background != "" {
-			p.set("cursor_text", t.Background, "terminal.background")
+			p.set("cursor_text", t.Background, p.termSrc+".background")
 		}
 	}
 	for slot, hex := range t.Normal {
-		p.set("normal."+slot, hex, "terminal")
+		p.set("normal."+slot, hex, p.termSrc)
 	}
 	for slot, hex := range t.Bright {
-		p.set("bright."+slot, hex, "terminal")
+		p.set("bright."+slot, hex, p.termSrc)
 	}
 }
 

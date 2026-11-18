@@ -1,0 +1,43 @@
+{
+  "id": "tokyonight-day",
+  "mode": "light",
+  "source": {
+    "repo": "folke/tokyonight.nvim",
+    "commit": "cdc07ac78467a233fd62c493de29a17e0cf2b2b6",
+    "path": "extras/kitty/tokyonight_day.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/folke/tokyonight.nvim/blob/cdc07ac78467a233fd62c493de29a17e0cf2b2b6/LICENSE",
+    "notice": "notices/folke-tokyonight.nvim.txt"
+  },
+  "terminal": {
+    "background": "#e1e2e7",
+    "foreground": "#3760bf",
+    "cursor": "#3760bf",
+    "cursor_text": "#e1e2e7",
+    "selection_bg": "#b7c1e3",
+    "selection_fg": "#3760bf",
+    "normal": {
+      "black": "#b4b5b9",
+      "blue": "#2e7de9",
+      "cyan": "#007197",
+      "green": "#587539",
+      "magenta": "#9854f1",
+      "red": "#f52a65",
+      "white": "#6172b0",
+      "yellow": "#8c6c3e"
+    },
+    "bright": {
+      "black": "#a1a6c5",
+      "blue": "#358aff",
+      "cyan": "#007ea8",
+      "green": "#5c8524",
+      "magenta": "#a463ff",
+      "red": "#ff4774",
+      "white": "#3760bf",
+      "yellow": "#a27629"
+    }
+  }
+}

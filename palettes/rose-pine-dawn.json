@@ -1,0 +1,43 @@
+{
+  "id": "rose-pine-dawn",
+  "mode": "light",
+  "source": {
+    "repo": "rose-pine/kitty",
+    "commit": "efd4f01cb9887feaa7114ff21a887464295d0205",
+    "path": "dist/rose-pine-dawn.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/rose-pine/kitty/blob/efd4f01cb9887feaa7114ff21a887464295d0205/LICENSE",
+    "notice": "notices/rose-pine-kitty.txt"
+  },
+  "terminal": {
+    "background": "#faf4ed",
+    "foreground": "#575279",
+    "cursor": "#cecacd",
+    "cursor_text": "#575279",
+    "selection_bg": "#dfdad9",
+    "selection_fg": "#575279",
+    "normal": {
+      "black": "#f2e9e1",
+      "blue": "#56949f",
+      "cyan": "#d7827e",
+      "green": "#286983",
+      "magenta": "#907aa9",
+      "red": "#b4637a",
+      "white": "#575279",
+      "yellow": "#ea9d34"
+    },
+    "bright": {
+      "black": "#9893a5",
+      "blue": "#56949f",
+      "cyan": "#d7827e",
+      "green": "#286983",
+      "magenta": "#907aa9",
+      "red": "#b4637a",
+      "white": "#575279",
+      "yellow": "#ea9d34"
+    }
+  }
+}

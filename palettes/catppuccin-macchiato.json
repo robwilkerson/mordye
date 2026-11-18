@@ -1,0 +1,43 @@
+{
+  "id": "catppuccin-macchiato",
+  "mode": "dark",
+  "source": {
+    "repo": "catppuccin/kitty",
+    "commit": "177d447f0c3626959ef001b4605f5d844541fd63",
+    "path": "themes/macchiato.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/catppuccin/kitty/blob/177d447f0c3626959ef001b4605f5d844541fd63/LICENSE",
+    "notice": "notices/catppuccin-kitty.txt"
+  },
+  "terminal": {
+    "background": "#24273a",
+    "foreground": "#cad3f5",
+    "cursor": "#f4dbd6",
+    "cursor_text": "#24273a",
+    "selection_bg": "#f4dbd6",
+    "selection_fg": "#24273a",
+    "normal": {
+      "black": "#494d64",
+      "blue": "#8aadf4",
+      "cyan": "#8bd5ca",
+      "green": "#a6da95",
+      "magenta": "#f5bde6",
+      "red": "#ed8796",
+      "white": "#a5adcb",
+      "yellow": "#eed49f"
+    },
+    "bright": {
+      "black": "#5b6078",
+      "blue": "#78a1f6",
+      "cyan": "#63cbc0",
+      "green": "#8ccf7f",
+      "magenta": "#f2a9dd",
+      "red": "#ec7486",
+      "white": "#b8c0e0",
+      "yellow": "#e1c682"
+    }
+  }
+}

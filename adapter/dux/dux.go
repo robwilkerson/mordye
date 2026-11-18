@@ -63,6 +63,27 @@ var roles = map[string]string{
 // color can still fill a terminal slot.
 var textRoles = []string{"backgroundText", "surfaceText"}
 
+// palettes maps a Dux theme, by the name Parse gives it, to the bundled
+// palette of that theme's official terminal port. Where Dux ships several
+// themes for one port family, each takes the port with the closest dark
+// background: Dux's three Tokyo Night themes other than Storm all use Night's
+// darkest shade.
+var palettes = map[string]string{
+	"catppuccin-mocha":     "catppuccin-mocha",
+	"catppuccin-macchiato": "catppuccin-macchiato",
+	"catppuccin-frappe":    "catppuccin-frappe",
+	"dracula":              "dracula",
+	"flexoki":              "flexoki-dark",
+	"kanagawaWl":           "kanagawa",
+	"nord":                 "nord",
+	"rosePine":             "rose-pine",
+	"solarizedOsakaNight":  "solarized-osaka-dark",
+	"tokyoNight":           "tokyonight-night",
+	"tokyoNightDark":       "tokyonight-night",
+	"tokyoNightNightMoon":  "tokyonight-night",
+	"tokyoNightStorm":      "tokyonight-storm",
+}
+
 // Parse translates Dux settings and the theme file they select into Mordye
 // input. Settings may be nil, in which case the theme's defaults apply.
 func Parse(settings, theme []byte) (mordye.Input, error) {
@@ -88,7 +109,7 @@ func Parse(settings, theme []byte) (mordye.Input, error) {
 
 	in := mordye.Input{
 		Version: mordye.Version, Name: name, Mode: "dark", Accent: accent,
-		Colors: map[string]string{}, Swatches: swatches,
+		Colors: map[string]string{}, Swatches: swatches, Palette: palettes[name],
 	}
 	for from, to := range roles {
 		if hex, ok := dark[from].(string); ok {

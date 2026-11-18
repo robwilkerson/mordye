@@ -1,0 +1,43 @@
+{
+  "id": "solarized-osaka-light",
+  "mode": "light",
+  "source": {
+    "repo": "craftzdog/solarized-osaka.nvim",
+    "commit": "a21176efde15fab21fabda0bf2ba123ed6d7332d",
+    "path": "extras/kitty/solarized_osaka_light.conf",
+    "format": "kitty"
+  },
+  "license": {
+    "spdx": "Apache-2.0",
+    "url": "https://github.com/craftzdog/solarized-osaka.nvim/blob/a21176efde15fab21fabda0bf2ba123ed6d7332d/LICENSE",
+    "notice": "notices/craftzdog-solarized-osaka.nvim.txt"
+  },
+  "terminal": {
+    "background": "#fdf5e2",
+    "foreground": "#576d74",
+    "cursor": "#576d74",
+    "cursor_text": "#fdf5e2",
+    "selection_bg": "#fdf5e2",
+    "selection_fg": "#576d74",
+    "normal": {
+      "black": "#ffffff",
+      "blue": "#268bd3",
+      "cyan": "#29a298",
+      "green": "#849900",
+      "magenta": "#d23681",
+      "red": "#db302d",
+      "white": "#576d74",
+      "yellow": "#b28500"
+    },
+    "bright": {
+      "black": "#adb7b7",
+      "blue": "#268bd3",
+      "cyan": "#29a298",
+      "green": "#849900",
+      "magenta": "#d23681",
+      "red": "#db302d",
+      "white": "#576d74",
+      "yellow": "#b28500"
+    }
+  }
+}

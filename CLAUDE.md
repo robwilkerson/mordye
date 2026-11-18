@@ -21,8 +21,9 @@ decision; raise it before adding one.
 ## Architecture
 
 - **Generator** (root package): `Complete(Input) (Output, error)`. It knows nothing about any source.
-- **Adapters** (`adapter/<source>/`): one package per source. `Parse` takes file contents, never paths, and returns `mordye.Input`. `adapter/dux` is the pattern for new adapters.
-- **Terminal port adapters** (`adapter/kitty`) supplement a theme adapter: `Parse` returns `mordye.TerminalInput`, and the CLI sets it on the theme's input. Why kitty: `docs/decisions/0001-kitty-ports-for-terminal-colors.md`.
+- **Adapters** (`adapter/<source>/`): one package per source. `Parse` takes file contents, never paths, and returns `mordye.Input`, including the id of any bundled palette for the theme. Each adapter maps its own theme names to palette ids. `adapter/dux` is the pattern for new adapters.
+- **Converters** (`converters/`): one package, one file and function per port format, such as `converters.Kitty`. Each takes file contents and returns `mordye.TerminalInput`. They run only ahead of time, in the palette tool (`tools/palettes`), which writes `palettes/*.json`; Mordye never reads a port file at runtime. Why: `docs/decisions/0002-bundled-terminal-palettes.md`.
+- **Bundled palettes** (`palettes/`): embedded in the binary and read by the root package. The palette tool writes them, so never edit one by hand.
 - **CLI** (`cmd/mordye`): the only code that touches the filesystem. It reads the files its flags name and runs one subcommand per source. The palette goes to stdout and diagnostics to stderr. An error exits non-zero, and a zero exit never comes with a partial palette. Flags and subcommands are a public interface; renaming one breaks callers.
 - Mordye never discovers files. Finding a source's settings is the caller's job; keep it that way. Adapters don't read environment variables or assume a home directory either, and source-specific knowledge stays in its adapter.
 - A malformed or unexpected source file fails with a clear error, never a silently partial palette.
@@ -51,8 +52,8 @@ breaking; flag it and apply the `👀 Attention` label.
 ## Tests
 
 - Test names state the behavior as a sentence, such as `TestAccentDoesNotMoveTerminalColors`.
-- Files in `adapter/*/testdata/` are unmodified upstream themes, credited in the README. Never edit them. A new fixture is copied verbatim and credited.
-- New adapter behavior is tested against those real theme files, not hand-built approximations.
+- Files in `adapter/*/testdata/` and `converters/*/testdata/` are unmodified upstream themes and ports, credited in the README. Never edit them. A new fixture is copied verbatim and credited.
+- New adapter and converter behavior is tested against those real files, not hand-built approximations.
 
 ## Commands
 

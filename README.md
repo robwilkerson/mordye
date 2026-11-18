@@ -21,7 +21,7 @@ Every color in the output comes from the first source on its row that has one. M
 | `primary`, `secondary`, `tertiary` | The accent you chose, on a theme with an accent menu. Then the theme's own role. A missing `secondary` copies `primary`, and `tertiary` copies `secondary`. |
 | `error`, `warning`, `info` | The theme's own role. Then the terminal red, yellow, or blue, which may be one of the theme's swatches. |
 | Other interface roles | The theme's own role. Then a rule built from the theme's other colors ([Surfaces](#surfaces), [Interface Roles](#interface-roles)). |
-| The 16 terminal colors | The [terminal palette](#terminal-colors) you pass. Then a theme color matched to the slot by hue. Then a color generated at the slot's usual hue. Black, white, and the brights follow their own rules. |
+| The 16 terminal colors | The theme's [terminal palette](#terminal-colors), bundled with Mordye or given in the input. Then a theme color matched to the slot by hue. Then a color generated at the slot's usual hue. Black, white, and the brights follow their own rules. |
 | Terminal cursor | The accent you chose. Then the terminal palette. Then the foreground. |
 | Terminal background, foreground, and selection | The terminal palette. Then the matching interface role. |
 
@@ -33,7 +33,8 @@ Look the field up in the output's `sources` map. Each value names where its colo
 
 - **`colors.<role>`:** the theme defined it.
 - **`swatches.<name>`:** one of the theme's extra colors, such as Catppuccin's `mauve`.
-- **`terminal`:** the terminal palette you passed.
+- **`palette.<id>`:** the theme's bundled terminal palette, such as `palette.dracula`.
+- **`terminal`:** terminal colors given in the input.
 - **`ui.<role>`:** copied from an interface role.
 - **`generated`:** the theme had nothing usable, so Mordye made it.
 - **A note, such as `bright.white, dimmer`:** derived from another field.
@@ -53,17 +54,17 @@ Primary is the theme's own (the green accent), and tertiary copies secondary. Re
 
 ## How It Compares
 
-Each image shows a theme's eight normal terminal colors three ways: the theme's official palette, what Mordye makes from the Dux theme file alone, and what [Dux Shell](https://github.com/duxlabs-dev/dux-shell) generates itself. Given the theme's [terminal palette](#terminal-colors) as well, Mordye's terminal matches the official row exactly; these rows show its fallback, from the theme file alone.
-
-Dux is here because it's the shell I use, and the comparison is a fair one rather than a knock on it. Building terminal colors from the accent is the Material You approach, and Dux follows it as designed; many shells and theme tools do the same. Mordye is for when you want the theme's own colors instead.
+Each image shows a theme's eight normal terminal colors next to its official palette, one for each way Mordye gets them: from a [bundled palette](#bundled-palettes), and by falling back to the theme file alone.
 
 ![Catppuccin Mocha's terminal colors: official, Mordye, and Dux under two accents](assets/catppuccin-mocha-terminal.svg)
 
-**Catppuccin Mocha.** Mordye matches five of the eight official colors exactly, and fills magenta and cyan with other Catppuccin colors (mauve and sky). Its terminal stays the same whichever accent you pick. Dux's terminal follows the accent, as Material You intends: with green, its blue, magenta, and cyan all become greens.
+**Catppuccin Mocha, with its bundled palette.** Mordye's terminal is the official one, all eight colors, whichever accent you pick. [Dux Shell](https://github.com/duxlabs-dev/dux-shell)'s own terminal follows the accent, as Material You intends: with green, its blue, magenta, and cyan all become greens.
 
-![Tokyo Night's terminal colors: official, Mordye, and Dux](assets/tokyo-night-terminal.svg)
+Dux is here because it's the shell I use, and the comparison is a fair one rather than a knock on it. Building terminal colors from the accent is the Material You approach, and Dux follows it as designed; many shells and theme tools do the same. Mordye is for when you want the theme's own colors instead.
 
-**Tokyo Night.** The theme file holds fewer of its terminal colors, so Mordye matches three and generates a softer green and yellow. Dux builds its own palette from the accent, so its colors differ from the official ones, and Tokyo Night's cyan and blue land in its magenta and cyan slots.
+![Gruvbox Material's terminal colors: official and Mordye](assets/gruvbox-material-terminal.svg)
+
+**Gruvbox Material, from the theme file alone.** It has no bundled palette yet, so Mordye matches by hue. Red, green, and yellow are the theme's own colors, a step from the official ones because Dux's theme file has them slightly differently. Blue, magenta, and cyan are generated at each slot's usual hue, at Gruvbox's own lightness and chroma, but Gruvbox's official ones sit elsewhere: its blue is teal, and its cyan is green.
 
 Dux's rows are the palettes it generated on 2026-11-15. `bin/readme-swatches.sh` redraws both images, running Mordye for its rows.
 
@@ -117,14 +118,7 @@ mordye dux --settings ~/.config/dms/settings.json \
 
 | Source | Files It Takes |
 |---|---|
-| `dux` ([Dux Shell](https://github.com/duxlabs-dev/dux-shell), formerly DankMaterialShell) | The theme file; optionally, the settings for the flavor and accent you chose, and the theme's kitty port |
-
-To make the terminal match the theme's own terminal port, also pass that port as a kitty theme file (see [Terminal Colors](#terminal-colors)):
-
-```bash
-mordye dux --theme ~/.config/dms/themes/dracula/theme.json \
-  --terminal-palette ~/themes/dracula/kitty.conf > palette.json
-```
+| `dux` ([Dux Shell](https://github.com/duxlabs-dev/dux-shell), formerly DankMaterialShell) | The theme file; optionally, the settings for the flavor and accent you chose |
 
 A source with no built-in adapter can write the input format below and pipe it in: `mordye < input.json`.
 
@@ -136,6 +130,7 @@ The input is a sparse palette:
 - **`swatches`:** extra theme colors with no role, such as Catppuccin's accent menu. They can fill terminal slots. The only interface roles one can reach are a missing `error`, `warning`, or `info`, by way of the terminal red, yellow, or blue (see [Interface Roles](#interface-roles)).
 - **`accent`:** on a theme with an accent menu, the swatch you chose. It keeps `primary` and `secondary` out of the terminal colors, so changing the accent never moves them.
 - **`terminal`:** any terminal colors the source already has. These pass through unchanged, except that a chosen `accent` keeps the cursor.
+- **`palette`:** the id of a [bundled terminal palette](#bundled-palettes), such as `dracula`. It fills `terminal` when the input has no terminal colors of its own. When it has some, those win whole, so two palettes never mix. An id Mordye doesn't bundle is an error. Built-in adapters set it for the themes they know.
 
 The palette's `name` and every swatch name must start with an ASCII letter or digit, then use only letters, digits, `.`, `_`, and `-`. Names come from theme files and end up in generated config, so Mordye rejects anything else rather than pass it along.
 
@@ -146,7 +141,7 @@ The output always has the same 37 fields:
 - **15 interface roles**, such as `primary`, `background`, `surface_container_high`, and `on_surface`
 - **22 terminal fields**: background, foreground, cursor, cursor text, selection, and the 16 normal and bright colors
 
-A `sources` map records where each field came from: passed through, taken from a role or swatch, or generated.
+A `sources` map records where each field came from: passed through, taken from a bundled palette, a role, or a swatch, or generated.
 
 ## How Mordye Fills the Gaps
 
@@ -169,13 +164,28 @@ A theme that defines one rung gives no spacing to copy, so Mordye uses Catppucci
 
 ### Terminal Colors
 
-**Pass the theme's terminal palette whenever one exists.** It's the only way to get the theme's exact terminal colors. Most themes publish an official terminal port, the canonical terminal palette as the theme's authors define it, with a color for all 16 slots. Pass the path to one with `--terminal-palette`, and its colors (plus cursor and selection) pass through unchanged. Mordye fills only what the file leaves out. The one exception is the cursor on a theme with an accent menu: it shows the accent you chose, over the port's.
+**A theme's own terminal palette beats any rule.** Most themes publish an official terminal port, the canonical terminal palette as the theme's authors define it, with a color for all 16 slots. Mordye bundles those ports for well-known themes (see [Bundled Palettes](#bundled-palettes)), and the built-in adapters use them with no extra step. Its colors, plus cursor and selection, pass through unchanged. The one exception is the cursor on a theme with an accent menu: it shows the accent you chose, over the palette's.
 
-**Getting a port:** Mordye doesn't download anything, so you need the file on disk first. Look for a kitty port linked from the theme's own site or repository. If the theme doesn't have one, kitty's [theme collection](https://github.com/kovidgoyal/kitty-themes) probably does. On a theme with several flavors, grab the port for the flavor you chose, since each flavor has its own file.
+A source with its own terminal colors can pass them in the input's `terminal` instead. They win over a bundled palette, whole.
 
-The port is a kitty theme file whatever terminal you use, because kitty ports are the easiest to find and to read: most themes ship one, and each line is a plain key and value. The format is only where the colors come from; your templates write them out for any terminal. [ADR 0001](docs/decisions/0001-kitty-ports-for-terminal-colors.md) has the reasoning.
+**Without one, Mordye falls back to matching by hue.** It keeps every color the theme defines, but it has to guess which slot each one fills and generate the rest, so the result won't equal the official palette. Themes that fill slots by name come out differently: Dracula's blue slot holds its purple, and Rosé Pine's green holds its pine.
 
-**Without one, Mordye falls back to matching by hue.** It keeps every color the theme defines, but it has to guess which slot each one fills and generate the rest, so the result won't equal the official palette. Themes that fill slots by name come out differently: Dracula's blue slot holds its purple, and Rosé Pine's green holds its pine. Ports of the same theme can also disagree with each other (Rosé Pine's foot port puts foam in green), so the colors match the port you pass, not every port.
+#### Bundled Palettes
+
+Each bundled palette is a theme's official terminal port, made by the theme's own authors, under a license compatible with Mordye's MIT. Mordye stores them in one format and reads nothing else at runtime. A tool in the repository converts each upstream port at a pinned commit, and CI rebuilds every palette to prove the bundled copy is unchanged. [ADR 0002](docs/decisions/0002-bundled-terminal-palettes.md) has the reasoning.
+
+| Theme | Palette ids | Official port | License |
+|---|---|---|---|
+| [Catppuccin](https://catppuccin.com) | `catppuccin-mocha`, `catppuccin-macchiato`, `catppuccin-frappe`, `catppuccin-latte` | [catppuccin/kitty](https://github.com/catppuccin/kitty) | MIT |
+| [Dracula](https://draculatheme.com) | `dracula` | [dracula/kitty](https://github.com/dracula/kitty) | MIT |
+| [Flexoki](https://stephango.com/flexoki) | `flexoki-dark`, `flexoki-light` | [kepano/flexoki](https://github.com/kepano/flexoki) | MIT |
+| [Kanagawa](https://github.com/rebelot/kanagawa.nvim) | `kanagawa`, `kanagawa-dragon`, `kanagawa-light` | [rebelot/kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim) | MIT |
+| [Nord](https://www.nordtheme.com) | `nord` | [nordtheme/xresources](https://github.com/nordtheme/xresources) | MIT |
+| [Rosé Pine](https://rosepinetheme.com) | `rose-pine`, `rose-pine-moon`, `rose-pine-dawn` | [rose-pine/kitty](https://github.com/rose-pine/kitty) | MIT |
+| [Solarized Osaka](https://github.com/craftzdog/solarized-osaka.nvim) | `solarized-osaka-dark`, `solarized-osaka-light` | [craftzdog/solarized-osaka.nvim](https://github.com/craftzdog/solarized-osaka.nvim) | Apache-2.0 |
+| [Tokyo Night](https://github.com/folke/tokyonight.nvim) | `tokyonight-night`, `tokyonight-storm`, `tokyonight-moon`, `tokyonight-day` | [folke/tokyonight.nvim](https://github.com/folke/tokyonight.nvim) | Apache-2.0 |
+
+Light palettes are bundled for when Mordye completes light themes ([#27](https://github.com/robwilkerson/mordye/issues/27)). Each palette file records the exact commit it came from, and each release ships the upstream license notices beside the binary.
 
 Without a port, each chromatic slot has a usual hue: red, yellow, green, cyan, blue, and magenta. A theme color fills a slot when its hue is within 30° of the slot's, and it can fill only its nearest slot. Near-grays never fill one.
 
@@ -220,7 +230,8 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 ## Known Limitations
 
 - **Dark themes only.** Mordye completes a theme's dark variant, and its tuning assumes a dark background. Light themes are [#27](https://github.com/robwilkerson/mordye/issues/27).
-- **One built-in source.** Dux Shell is the only theme adapter so far, and kitty the only terminal port format. Any other source has to write Mordye's input format itself.
+- **One built-in source.** Dux Shell is the only theme adapter so far. Any other source has to write Mordye's input format itself.
+- **Some themes have no bundled palette.** A theme without a qualifying official port gets hue-matched terminal colors. Everforest, Gruvbox, and Gruvbox Material are next ([#40](https://github.com/robwilkerson/mordye/issues/40)).
 - **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version.
 - **Linux builds only.** Releases ship Linux binaries; other platforms build from source with `go install`.
 
@@ -228,7 +239,9 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 
 The test fixtures in `adapter/dux/testdata/` are theme files from the [Dux plugin registry](https://github.com/duxlabs-dev/dux-plugin-registry), copied unchanged so the adapter is tested against real themes. They are the work of their authors, and the palettes they carry belong to their own projects: [Catppuccin](https://catppuccin.com), [Dracula](https://draculatheme.com), [Gruvbox Material](https://github.com/sainnhe/gruvbox-material), [Nord](https://www.nordtheme.com), [Rosé Pine](https://rosepinetheme.com), and [Tokyo Night](https://github.com/folke/tokyonight.nvim).
 
-The fixtures in `adapter/kitty/testdata/` are official kitty ports, also copied unchanged and MIT licensed: [Catppuccin's](https://github.com/catppuccin/kitty), [Dracula's](https://github.com/dracula/kitty), and [Rosé Pine's](https://github.com/rose-pine/kitty).
+The fixtures in `converters/testdata/` are official terminal ports, also copied unchanged and MIT licensed: [Catppuccin's](https://github.com/catppuccin/kitty), [Dracula's](https://github.com/dracula/kitty), and [Rosé Pine's](https://github.com/rose-pine/kitty) kitty ports, and [Nord's](https://github.com/nordtheme/xresources) Xresources port.
+
+The [bundled palettes](#bundled-palettes) carry the colors of each theme's official port and belong to their own projects. Each keeps its upstream license, whose text is in `palettes/notices/`.
 
 ## About the Robot
 
@@ -248,7 +261,7 @@ bug report or a PR is always appreciated.
 
 ## License
 
-[MIT](LICENSE). The test fixtures are credited above and are not covered by it.
+[MIT](LICENSE). The test fixtures and bundled palettes are credited above and are not covered by it.
 
 ## The Name
 

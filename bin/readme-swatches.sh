@@ -3,11 +3,17 @@
 #
 #   bin/readme-swatches.sh
 #
+# One image per way Mordye gets terminal colors: Catppuccin Mocha uses its
+# bundled palette, and Gruvbox Material, which has none yet, falls back to
+# matching by hue.
+#
 # Mordye's rows come from running Mordye on the Dux fixtures, so rerun this
-# after any change to how Mordye picks terminal colors. The other rows are
-# fixed: each theme's official palette, and the palette Dux generated for the
-# same theme, read from Dux's cache (~/.cache/dms/dms-colors.json, the dark
-# color0-7 of its dank16 palette) on 2026-11-15.
+# after any change to how Mordye picks terminal colors. A bundled theme's
+# official row is read from its palette file, so it can't drift from what
+# Mordye ships. The other rows are fixed: Gruvbox Material's official colors,
+# and the palette Dux generated for Catppuccin, read from Dux's cache
+# (~/.cache/dms/dms-colors.json, the dark color0-7 of its dank16 palette) on
+# 2026-11-15.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -23,6 +29,13 @@ mordye_row() {
 	go run ./cmd/mordye dux --theme "adapter/dux/testdata/$3.json" --settings "$settings" |
 		jq -r '.terminal.normal | [.black, .red, .green, .yellow, .blue, .magenta, .cyan, .white] | join(" ")'
 	rm -f "$settings"
+}
+
+# palette_row ID: a bundled palette's eight normal colors, lowercased as
+# Mordye writes them.
+palette_row() {
+	jq -r '.terminal.normal | [.black, .red, .green, .yellow, .blue, .magenta, .cyan, .white] | map(ascii_downcase) | join(" ")' \
+		"palettes/$1.json"
 }
 
 # svg FILE TITLE BACKGROUND TEXT DIM ROWS...: each row is
@@ -64,20 +77,22 @@ svg() {
 	echo "wrote $file"
 }
 
-# Catppuccin's official colors are its kitty port, color0-7.
+# Catppuccin's official colors are its bundled palette, from its kitty port.
 svg assets/catppuccin-mocha-terminal.svg \
 	"Catppuccin Mocha's eight terminal colors: the official palette, Mordye's under either accent, and Dux's under the mauve and green accents." \
 	"#1e1e2e" "#cdd6f4" "#a6adc8" \
-	"Catppuccin|official palette|#45475a #f38ba8 #a6e3a1 #f9e2af #89b4fa #f5c2e7 #94e2d5 #bac2de" \
+	"Catppuccin|official palette|$(palette_row catppuccin-mocha)" \
 	"Mordye|mauve or green accent|$(mordye_row mocha mauve catppuccin)" \
 	"Dux|mauve accent|#181825 #ff728c #7bf797 #ffdb72 #b88eea #55307f #cba6f7 #f6efff" \
 	"Dux|green accent|#181825 #ff9372 #74e371 #ffee72 #92d78c #2f5f36 #a6e3a1 #e0eee2"
 
-# Tokyo Night's official colors are folke/tokyonight.nvim's
-# extras/kitty/tokyonight_night.conf, color0-7.
-svg assets/tokyo-night-terminal.svg \
-	"Tokyo Night's eight terminal colors: the official palette, Mordye's from the theme file alone, and Dux's." \
-	"#1a1b26" "#c0caf5" "#a9b1d6" \
-	"Tokyo Night|official palette|#15161e #f7768e #9ece6a #e0af68 #7aa2f7 #bb9af7 #7dcfff #a9b1d6" \
-	"Mordye|from the theme file alone|$(mordye_row '' '' tokyoNight)" \
-	"Dux|its generated palette|#1a1b26 #ff7198 #7af78c #fff871 #5c89ea #7dcfff #7aa2f7 #eff9ff"
+# Gruvbox Material's official colors are what its Vim colorscheme sets for the
+# terminal, dark with medium contrast and the default material foreground:
+# sainnhe/gruvbox-material at 11d779b26a9ab2b3db8c22c6ac9fb6e8ed4fea79,
+# colors/gruvbox-material.vim (s:terminal) and autoload/gruvbox_material.vim
+# (the palette). Black is bg5, white is fg0, and cyan is aqua.
+svg assets/gruvbox-material-terminal.svg \
+	"Gruvbox Material's eight terminal colors: the official palette, and Mordye's from the theme file alone." \
+	"#282828" "#d4be98" "#a89984" \
+	"Gruvbox Material|official palette|#5a524c #ea6962 #a9b665 #d8a657 #7daea3 #d3869b #89b482 #d4be98" \
+	"Mordye|from the theme file alone|$(mordye_row '' '' gruvbox-material)"

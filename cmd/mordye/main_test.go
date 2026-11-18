@@ -52,12 +52,10 @@ func TestDuxReadsTheFilesItIsGiven(t *testing.T) {
 	}
 }
 
-// duxWithKitty runs the dux subcommand on a fixture theme and its kitty port,
-// plus any extra arguments.
-func duxWithKitty(t *testing.T, theme, port string, extra ...string) mordye.Output {
+// duxOutput runs the dux subcommand on a fixture theme, plus any extra arguments.
+func duxOutput(t *testing.T, theme string, extra ...string) mordye.Output {
 	t.Helper()
-	args := append([]string{"dux", "--theme", "../../adapter/dux/testdata/" + theme + ".json",
-		"--terminal-palette", "../../adapter/kitty/testdata/" + port + ".conf"}, extra...)
+	args := append([]string{"dux", "--theme", "../../adapter/dux/testdata/" + theme + ".json"}, extra...)
 	var out bytes.Buffer
 	if err := dispatch(args, strings.NewReader(""), &out); err != nil {
 		t.Fatal(err)
@@ -69,32 +67,32 @@ func duxWithKitty(t *testing.T, theme, port string, extra ...string) mordye.Outp
 	return got
 }
 
-// Both ports fill slots by name, which matching by hue alone would never do:
-// Dracula's blue is its purple, and Rosé Pine's green is its pine.
-func TestKittyPortSetsTheTerminalColors(t *testing.T) {
+// Both palettes fill slots by name, which matching by hue alone would never
+// do: Dracula's blue is its purple, and Rosé Pine's green is its pine.
+func TestBundledPaletteSetsTheTerminalColors(t *testing.T) {
 	for _, c := range []struct{ theme, slot, got, want string }{
-		{"dracula", "blue", duxWithKitty(t, "dracula", "dracula").Terminal.Normal.Blue, "#bd93f9"},
-		{"rose-pine", "green", duxWithKitty(t, "rose-pine", "rose-pine").Terminal.Normal.Green, "#31748f"},
+		{"dracula", "blue", duxOutput(t, "dracula").Terminal.Normal.Blue, "#bd93f9"},
+		{"rose-pine", "green", duxOutput(t, "rose-pine").Terminal.Normal.Green, "#31748f"},
 	} {
 		if c.got != c.want {
-			t.Errorf("%s: %s = %s, want the port's %s", c.theme, c.slot, c.got, c.want)
+			t.Errorf("%s: %s = %s, want the palette's %s", c.theme, c.slot, c.got, c.want)
 		}
 	}
 }
 
-func TestAccentMovesOnlyTheCursorOverAKittyPort(t *testing.T) {
-	mauve := duxWithKitty(t, "catppuccin", "catppuccin-mocha")
+func TestAccentMovesOnlyTheCursorOverABundledPalette(t *testing.T) {
+	mauve := duxOutput(t, "catppuccin")
 	settings := t.TempDir() + "/settings.json"
 	body := `{"currentThemeName": "custom", "registryThemeVariants": {"catppuccin": {"dark": {"flavor": "mocha", "accent": "peach"}}}}`
 	if err := os.WriteFile(settings, []byte(body), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	peach := duxWithKitty(t, "catppuccin", "catppuccin-mocha", "--settings", settings)
+	peach := duxOutput(t, "catppuccin", "--settings", settings)
 	if peach.UI.Primary == mauve.UI.Primary {
 		t.Fatalf("primary %s under both accents; the settings didn't apply", peach.UI.Primary)
 	}
-	// The accent drives the cursor, even over the port's; everything else in
-	// the port stays put.
+	// The accent drives the cursor, even over the palette's; everything else
+	// in the palette stays put.
 	for name, tm := range map[string]mordye.Output{"mauve": mauve, "peach": peach} {
 		if tm.Terminal.Cursor != tm.UI.Primary || tm.Terminal.CursorText != tm.UI.OnPrimary {
 			t.Errorf("%s: cursor %s on %s, want the accent %s on %s",
@@ -108,10 +106,10 @@ func TestAccentMovesOnlyTheCursorOverAKittyPort(t *testing.T) {
 	}
 }
 
-// Without an accent menu, the port's own cursor passes through.
-func TestPortsCursorPassesThroughWithoutAnAccent(t *testing.T) {
-	if got := duxWithKitty(t, "dracula", "dracula").Terminal.Cursor; got != "#f8f8f2" {
-		t.Errorf("cursor = %s, want the port's #f8f8f2", got)
+// Without an accent menu, the palette's own cursor passes through.
+func TestPalettesCursorPassesThroughWithoutAnAccent(t *testing.T) {
+	if got := duxOutput(t, "dracula").Terminal.Cursor; got != "#f8f8f2" {
+		t.Errorf("cursor = %s, want the palette's #f8f8f2", got)
 	}
 }
 

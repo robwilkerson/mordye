@@ -21,10 +21,17 @@ builds:
 
 # Asset names use Go's architecture names (mordye_1.2.3_linux_amd64.rpm), so a
 # Containerfile can drop in ${TARGETARCH} without mapping it.
+# The bundled palettes are compiled into the binary, so their upstream license
+# notices ship beside it, as their licenses require (docs/decisions/0002).
 archives:
   - formats: [tar.gz]
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
-    files: [LICENSE, README.md, CHANGELOG.md]
+    files:
+      - LICENSE
+      - README.md
+      - CHANGELOG.md
+      - src: palettes/notices/*
+        dst: notices
 
 nfpms:
   - package_name: mordye
@@ -36,6 +43,13 @@ nfpms:
     homepage: https://github.com/robwilkerson/mordye
     description: Completes a sparse theme palette into every interface role and terminal color an app needs.
     license: MIT
+    contents:
+      - src: LICENSE
+        dst: /usr/share/licenses/mordye/LICENSE
+        type: license
+      # nfpm expands a glob only for plain files, not type: license.
+      - src: palettes/notices/*
+        dst: /usr/share/licenses/mordye/notices/
 
 checksum:
   name_template: checksums.txt
