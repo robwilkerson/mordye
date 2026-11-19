@@ -29,6 +29,10 @@ moves them under a version heading when it cuts the release.
 - **Every color comes out lowercase.** Colors a theme writes in uppercase used
   to pass through that way, mixed with lowercase generated ones. Now the whole
   palette is lowercase `#rrggbb`.
+- **Help, and exit codes that say what went wrong.** `mordye --help` and
+  `mordye dux --help` print usage. A mistake in the command, such as an
+  unknown flag or a missing `--theme`, now exits 2 instead of 1, so a script
+  can tell its own mistake from a bad theme, which still exits 1.
 - **Status colors match the terminal palette.** On a theme with no `error`,
   `warning`, or `info` color, those come from the terminal red, yellow, and
   blue. They now use the theme's terminal palette when it has one, matching
