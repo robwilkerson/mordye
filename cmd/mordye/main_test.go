@@ -150,6 +150,43 @@ func TestUnknownSubcommandIsAnError(t *testing.T) {
 	}
 }
 
+func TestHelpPrintsUsageAndSucceeds(t *testing.T) {
+	for _, args := range [][]string{{"-h"}, {"--help"}, {"dux", "-h"}, {"dux", "--help"}} {
+		var out bytes.Buffer
+		if err := dispatch(args, strings.NewReader(""), &out); err != nil {
+			t.Errorf("%v: err = %v, want none", args, err)
+		}
+		if !strings.Contains(out.String(), "Usage:") {
+			t.Errorf("%v: output %q, want usage", args, out.String())
+		}
+	}
+}
+
+// A caller's script needs to tell its own mistake from a broken theme.
+func TestAMistakeInTheCommandExitsTwo(t *testing.T) {
+	for _, args := range [][]string{{"noctalia"}, {"dux"}, {"dux", "--colour", "x"}} {
+		err := dispatch(args, strings.NewReader(""), &bytes.Buffer{})
+		if got := exitCode(err); got != 2 {
+			t.Errorf("%v: exit %d (err %v), want 2", args, got, err)
+		}
+	}
+}
+
+func TestBadInputExitsOne(t *testing.T) {
+	for name, c := range map[string]struct {
+		args  []string
+		stdin string
+	}{
+		"invalid input":    {nil, `{"version": 1}`},
+		"unreadable theme": {[]string{"dux", "--theme", "testdata/no-such-theme.json"}, ""},
+	} {
+		err := dispatch(c.args, strings.NewReader(c.stdin), &bytes.Buffer{})
+		if got := exitCode(err); got != 1 {
+			t.Errorf("%s: exit %d (err %v), want 1", name, got, err)
+		}
+	}
+}
+
 func TestRunRejectsUnknownFields(t *testing.T) {
 	in := `{"version": 1, "colors": {"primary": "#a6da95", "on_surface": "#cad3f5"}, "colours": {}}`
 	err := run(strings.NewReader(in), &bytes.Buffer{})

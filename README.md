@@ -143,6 +143,14 @@ The output always has the same 37 fields:
 
 A `sources` map records where each field came from: passed through, taken from a bundled palette, a role, or a swatch, or generated.
 
+The palette goes to stdout and errors to stderr. A failure never writes a partial palette, and the exit status says what went wrong:
+
+| Exit | Meaning |
+|---|---|
+| 0 | Success. `mordye --help` and `mordye dux --help` exit 0 too. |
+| 1 | Bad input, such as a file Mordye can't read or a theme it can't complete. |
+| 2 | A mistake in the command: an unknown source or flag, or a missing required one. |
+
 ## How Mordye Fills the Gaps
 
 Every color Mordye adds comes from a rule that reads the theme's own colors. These rules matter most for the interface roles, where themes leave real gaps and there's no official answer to copy. For the terminal, a theme's own terminal palette beats any rule.
