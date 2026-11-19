@@ -29,6 +29,11 @@ moves them under a version heading when it cuts the release.
 - **Every color comes out lowercase.** Colors a theme writes in uppercase used
   to pass through that way, mixed with lowercase generated ones. Now the whole
   palette is lowercase `#rrggbb`.
+- **Dux theme options work.** Choosing an option on a theme like Rosé Pine
+  (Moon or Dawn) or Gruvbox Material (Hard or Soft) now gives that option's
+  colors, and Moon gets its own terminal palette. Before, every option came out
+  as the theme's default. Once you'd chosen one, `mordye dux` also failed for
+  every theme, even ones without options.
 - **Help, and exit codes that say what went wrong.** `mordye --help` and
   `mordye dux --help` print usage. A mistake in the command, such as an
   unknown flag or a missing `--theme`, now exits 2 instead of 1, so a script
