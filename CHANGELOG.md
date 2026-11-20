@@ -12,6 +12,10 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
+## 0.2.0
+
+Released 2026-11-20.
+
 - **Terminal colors from the theme's own palette.** Mordye now carries the
   official terminal palettes of Catppuccin, Dracula, Flexoki, Kanagawa, Nord,
   Rosé Pine, Solarized Osaka, and Tokyo Night. `mordye dux` uses them with no
