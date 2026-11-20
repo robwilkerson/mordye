@@ -22,7 +22,6 @@ reviews:
   changed_files_summary: false
   sequence_diagrams: false
   # Requests changes on blocking findings and approves once they're resolved.
-  # .github/workflows/ready-on-approval.yml takes the PR out of draft then.
   auto_approvals:
     enabled: true
   commit_status: true
