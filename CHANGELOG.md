@@ -38,6 +38,12 @@ moves them under a version heading when it cuts the release.
   `mordye dux --help` print usage. A mistake in the command, such as an
   unknown flag or a missing `--theme`, now exits 2 instead of 1, so a script
   can tell its own mistake from a bad theme, which still exits 1.
+- **Bad input fails instead of slipping through.** Text after the JSON on
+  stdin, an extra argument to `mordye dux`, or a theme color that isn't a
+  string is now an error. Before, Mordye ignored it, or generated the color
+  without saying so. Choosing a flavor with no dark colors, such as
+  Catppuccin Latte, now says so. Error messages quote any text from the
+  theme, so a theme can't send escape codes to your terminal.
 - **Status colors match the terminal palette.** On a theme with no `error`,
   `warning`, or `info` color, those come from the terminal red, yellow, and
   blue. They now use the theme's terminal palette when it has one, matching

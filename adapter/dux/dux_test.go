@@ -254,6 +254,35 @@ func TestRejectsAnUnknownOption(t *testing.T) {
 	}
 }
 
+func TestRejectsAColorThatIsNotAString(t *testing.T) {
+	for _, role := range []string{"primary", "surfaceText"} {
+		bad := strings.Replace(string(theme(t, "nord")), `"`+role+`": "`, `"`+role+`": [1], "x": "`, 1)
+		_, err := Parse(nil, []byte(bad))
+		if err == nil || !strings.Contains(err.Error(), role) {
+			t.Errorf("%s: err = %v, want one naming the role", role, err)
+		}
+	}
+}
+
+// Latte is a light flavor; its dark block is empty.
+func TestAFlavorWithNoDarkColorsSaysSo(t *testing.T) {
+	_, err := Parse(settings("catppuccin", "latte", "mauve"), theme(t, "catppuccin"))
+	if err == nil || !strings.Contains(err.Error(), `flavor "latte" has no dark colors`) {
+		t.Errorf("err = %v, want one naming the missing dark flavor", err)
+	}
+}
+
+// A theme id with terminal escape codes could otherwise retitle or clear the
+// terminal that shows the error.
+func TestThemeTextInErrorsIsEscaped(t *testing.T) {
+	id := `x\u001b]0;pwned\u0007`
+	evil := strings.Replace(string(theme(t, "catppuccin")), `"id": "catppuccin"`, `"id": "`+id+`"`, 1)
+	_, err := Parse(settings(id, "espresso", "mauve"), []byte(evil))
+	if err == nil || strings.ContainsRune(err.Error(), '\x1b') {
+		t.Errorf("err = %q, want an error with the escape code quoted", err)
+	}
+}
+
 func TestRejectsAnUnknownFlavorOrAccent(t *testing.T) {
 	for _, s := range [][]byte{
 		settings("catppuccin", "espresso", "green"),

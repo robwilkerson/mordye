@@ -106,6 +106,9 @@ func run(r io.Reader, w io.Writer) error {
 	if err := dec.Decode(&in); err != nil {
 		return fmt.Errorf("reading input: %w", err)
 	}
+	if _, err := dec.Token(); err != io.EOF {
+		return fmt.Errorf("reading input: text after the input")
+	}
 	return write(in, w)
 }
 
@@ -121,6 +124,9 @@ func runDux(args []string, w io.Writer) error {
 		return nil
 	} else if err != nil {
 		return usageError{fmt.Errorf("dux: %w (see mordye dux --help)", err)}
+	}
+	if fs.NArg() > 0 {
+		return usageError{fmt.Errorf("dux: unexpected argument %q (see mordye dux --help)", fs.Arg(0))}
 	}
 	if *theme == "" {
 		return usageError{fmt.Errorf("dux: --theme is required (see mordye dux --help)")}

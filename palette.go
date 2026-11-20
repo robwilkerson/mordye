@@ -263,7 +263,7 @@ func validate(in Input) error {
 	}
 	for role, hex := range in.Colors {
 		if !slices.Contains(Roles, role) {
-			return fmt.Errorf("colors.%s is not a known role; known roles: %v", role, Roles)
+			return fmt.Errorf("colors: %q is not a known role; known roles: %v", role, Roles)
 		}
 		if err := check("colors."+role, hex); err != nil {
 			return err
@@ -283,7 +283,7 @@ func validate(in Input) error {
 	for set, colors := range map[string]map[string]string{"normal": in.Terminal.Normal, "bright": in.Terminal.Bright} {
 		for slot, hex := range colors {
 			if !slices.Contains(Slots, slot) {
-				return fmt.Errorf("terminal.%s.%s is not a terminal slot; slots: %v", set, slot, Slots)
+				return fmt.Errorf("terminal.%s: %q is not a terminal slot; slots: %v", set, slot, Slots)
 			}
 			if err := check("terminal."+set+"."+slot, hex); err != nil {
 				return err

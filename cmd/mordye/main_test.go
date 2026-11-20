@@ -187,6 +187,26 @@ func TestBadInputExitsOne(t *testing.T) {
 	}
 }
 
+func TestRunRejectsTextAfterTheInput(t *testing.T) {
+	in := `{"version": 1, "colors": {"primary": "#a6da95", "on_surface": "#cad3f5"}} garbage`
+	var out bytes.Buffer
+	err := run(strings.NewReader(in), &out)
+	if err == nil || !strings.Contains(err.Error(), "after the input") {
+		t.Errorf("err = %v, want one about text after the input", err)
+	}
+	if out.Len() > 0 {
+		t.Errorf("wrote a palette despite the error:\n%s", out.String())
+	}
+}
+
+func TestDuxRejectsExtraArguments(t *testing.T) {
+	args := []string{"dux", "--theme", "../../adapter/dux/testdata/nord.json", "extra"}
+	err := dispatch(args, strings.NewReader(""), &bytes.Buffer{})
+	if got := exitCode(err); got != 2 || !strings.Contains(err.Error(), `"extra"`) {
+		t.Errorf("exit %d (err %v), want 2 naming the extra argument", got, err)
+	}
+}
+
 func TestRunRejectsUnknownFields(t *testing.T) {
 	in := `{"version": 1, "colors": {"primary": "#a6da95", "on_surface": "#cad3f5"}, "colours": {}}`
 	err := run(strings.NewReader(in), &bytes.Buffer{})
