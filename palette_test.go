@@ -70,6 +70,19 @@ func TestRejectsUnknownRoles(t *testing.T) {
 	}
 }
 
+func TestUnknownKeysInErrorsAreEscaped(t *testing.T) {
+	in := macchiato()
+	in.Colors["\x1b]0;pwned\a"] = "#cad3f5"
+	if _, err := Complete(in); err == nil || strings.ContainsRune(err.Error(), '\x1b') {
+		t.Errorf("err = %q, want an error with the escape code quoted", err)
+	}
+	in = macchiato()
+	in.Terminal.Normal = map[string]string{"\x1b]0;pwned\a": "#cad3f5"}
+	if _, err := Complete(in); err == nil || strings.ContainsRune(err.Error(), '\x1b') {
+		t.Errorf("err = %q, want an error with the escape code quoted", err)
+	}
+}
+
 func TestRejectsUnsafeNames(t *testing.T) {
 	for _, name := range []string{"x\n[shell]", `x"y`, "x\x1b]0;pwn\x07", "x y", "$(id)", "..", ".", "-rf"} {
 		in := macchiato()

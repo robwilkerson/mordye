@@ -118,6 +118,9 @@ func Parse(settings, theme []byte) (mordye.Input, error) {
 	if err != nil {
 		return mordye.Input{}, err
 	}
+	if err := checkRoles(dark); err != nil {
+		return mordye.Input{}, fmt.Errorf("theme %q: %w", t.ID, err)
+	}
 
 	in := mordye.Input{
 		Version: mordye.Version, Name: name, Mode: "dark", Accent: accent,
@@ -130,10 +133,10 @@ func Parse(settings, theme []byte) (mordye.Input, error) {
 	}
 	texts, err := plainestFirst(dark)
 	if err != nil {
-		return mordye.Input{}, fmt.Errorf("theme %s: %w", t.ID, err)
+		return mordye.Input{}, fmt.Errorf("theme %q: %w", t.ID, err)
 	}
 	if len(texts) == 0 {
-		return mordye.Input{}, fmt.Errorf("theme %s has no text color (%v)", t.ID, textRoles)
+		return mordye.Input{}, fmt.Errorf("theme %q has no text color (%v)", t.ID, textRoles)
 	}
 	in.Colors["on_surface"] = dark[texts[0]].(string)
 	for _, role := range texts[1:] {
@@ -159,7 +162,7 @@ func choiceFor(settings []byte, t themeFile) (choice, error) {
 		return choice{}, fmt.Errorf("reading the settings: %w", err)
 	}
 	if s.CurrentThemeName != "custom" {
-		return choice{}, fmt.Errorf("the active theme (%s) isn't a fixed theme; mordye reads fixed themes only", s.CurrentThemeName)
+		return choice{}, fmt.Errorf("the active theme (%q) isn't a fixed theme; mordye reads fixed themes only", s.CurrentThemeName)
 	}
 	raw := s.RegistryThemeVariants[t.ID]
 	var c choice
@@ -176,7 +179,7 @@ func choiceFor(settings []byte, t themeFile) (choice, error) {
 		c = v.Dark
 	}
 	if err != nil {
-		return choice{}, fmt.Errorf("reading the settings' choice for %s: %w", t.ID, err)
+		return choice{}, fmt.Errorf("reading the settings' choice for %q: %w", t.ID, err)
 	}
 	return c, nil
 }
@@ -215,7 +218,7 @@ func resolveOption(t themeFile, pick choice) (map[string]any, string, error) {
 			continue
 		}
 		if o.Dark == nil {
-			return nil, "", fmt.Errorf("theme %s: option %q has no dark colors", t.ID, id)
+			return nil, "", fmt.Errorf("theme %q: option %q has no dark colors", t.ID, id)
 		}
 		dark := map[string]any{}
 		for k, val := range t.Dark {
@@ -230,7 +233,7 @@ func resolveOption(t themeFile, pick choice) (map[string]any, string, error) {
 		}
 		return dark, name, nil
 	}
-	return nil, "", fmt.Errorf("theme %s has no option %q; options: %v", t.ID, id, ids)
+	return nil, "", fmt.Errorf("theme %q has no option %q; options: %q", t.ID, id, ids)
 }
 
 // resolveVariant picks the chosen flavor and accent from a multi-variant
@@ -250,6 +253,9 @@ func resolveVariant(t themeFile, pick choice) (dark map[string]any, swatches map
 	for _, f := range v.Flavors {
 		flavors = append(flavors, f.ID)
 		if f.ID == pick.Flavor {
+			if len(f.Dark) == 0 {
+				return nil, nil, "", "", fmt.Errorf("theme %q: flavor %q has no dark colors", t.ID, f.ID)
+			}
 			dark = map[string]any{}
 			for k, val := range f.Dark {
 				dark[k] = val
@@ -257,7 +263,7 @@ func resolveVariant(t themeFile, pick choice) (dark map[string]any, swatches map
 		}
 	}
 	if dark == nil {
-		return nil, nil, "", "", fmt.Errorf("theme %s has no flavor %q; flavors: %v", t.ID, pick.Flavor, flavors)
+		return nil, nil, "", "", fmt.Errorf("theme %q has no flavor %q; flavors: %q", t.ID, pick.Flavor, flavors)
 	}
 
 	swatches = map[string]string{}
@@ -282,9 +288,26 @@ func resolveVariant(t themeFile, pick choice) (dark map[string]any, swatches map
 	}
 	if !found {
 		sort.Strings(accents)
-		return nil, nil, "", "", fmt.Errorf("theme %s has no accent %q for flavor %s; accents: %v", t.ID, pick.Accent, pick.Flavor, accents)
+		return nil, nil, "", "", fmt.Errorf("theme %q has no accent %q for flavor %q; accents: %q", t.ID, pick.Accent, pick.Flavor, accents)
 	}
 	return dark, swatches, t.ID + "-" + pick.Flavor, pick.Accent, nil
+}
+
+// checkRoles rejects a role Mordye reads whose value isn't a string. Parse
+// would otherwise skip it, and the color would be generated without a word.
+func checkRoles(dark map[string]any) error {
+	var bad []string
+	for role, v := range dark {
+		_, read := roles[role]
+		if _, ok := v.(string); !ok && (read || slices.Contains(textRoles, role)) {
+			bad = append(bad, role)
+		}
+	}
+	if len(bad) > 0 {
+		sort.Strings(bad)
+		return fmt.Errorf("%s is not a color string", bad[0])
+	}
+	return nil
 }
 
 // plainestFirst returns the text roles the theme defines, least saturated
