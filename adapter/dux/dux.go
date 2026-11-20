@@ -196,13 +196,17 @@ func resolve(t themeFile, pick choice) (dark map[string]any, swatches map[string
 }
 
 // resolveOption lays the chosen option's colors over the theme's own, as Dux
-// does, falling back to the theme's default option. The default keeps the
-// theme's bare id as its name; another option adds its own id.
+// does, falling back to the theme's default option, or to the theme's own
+// colors when it has none. The default keeps the theme's bare id as its name;
+// another option adds its own id.
 func resolveOption(t themeFile, pick choice) (map[string]any, string, error) {
 	v := t.Variants
 	id := pick.Option
 	if id == "" {
 		id = v.Default
+	}
+	if id == "" {
+		return t.Dark, t.ID, nil
 	}
 	var ids []string
 	for _, o := range v.Options {

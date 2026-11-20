@@ -204,6 +204,27 @@ func TestAnOptionsThemeWithNoChoiceUsesItsDefault(t *testing.T) {
 	}
 }
 
+// With no default and no choice, Dux draws the theme's own colors, with no
+// option laid over them.
+func TestAnOptionsThemeWithNoDefaultUsesItsOwnColors(t *testing.T) {
+	var raw map[string]any
+	if err := json.Unmarshal(theme(t, "rose-pine"), &raw); err != nil {
+		t.Fatal(err)
+	}
+	delete(raw["variants"].(map[string]any), "default")
+	b, _ := json.Marshal(raw)
+	in, err := Parse(nil, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Rosé Pine's own colors leave the surfaces to its options.
+	want := raw["dark"].(map[string]any)["primary"]
+	if in.Name != "rosePine" || in.Colors["primary"] != want || in.Colors["background"] != "" {
+		t.Errorf("name %q, primary %s, background %q; want rosePine with its own %s and no option's background",
+			in.Name, in.Colors["primary"], in.Colors["background"], want)
+	}
+}
+
 // Dawn is a light theme, and its palette waits for light support (#27).
 func TestDawnNamesNoPaletteYet(t *testing.T) {
 	in, err := Parse(optionSettings(map[string]string{"rosePine": "dawn"}), theme(t, "rose-pine"))
