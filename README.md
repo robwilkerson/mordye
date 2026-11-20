@@ -70,10 +70,12 @@ Dux's rows are the palettes it generated on 2026-11-15. `bin/readme-swatches.sh`
 
 ## Install
 
-Each [release](https://github.com/robwilkerson/mordye/releases/latest) has Linux builds for x86_64 (`amd64`) and ARM (`arm64`), as a tarball or an RPM. Substitute the version and architecture you want:
+Each [release](https://github.com/robwilkerson/mordye/releases/latest) has Linux builds for x86_64 (`amd64`) and ARM (`arm64`), as a tarball or an RPM. This installs the latest release; set `ARCH=arm64` on ARM, or `VERSION` to pin a release:
 
 ```bash
-VERSION=0.2.0 ARCH=amd64
+ARCH=amd64
+VERSION=$(curl -fsSLo /dev/null -w '%{url_effective}' https://github.com/robwilkerson/mordye/releases/latest)
+VERSION=${VERSION##*/v}
 curl -LO "https://github.com/robwilkerson/mordye/releases/download/v${VERSION}/mordye_${VERSION}_linux_${ARCH}.tar.gz"
 tar -xzf "mordye_${VERSION}_linux_${ARCH}.tar.gz" mordye
 install -m 755 mordye ~/.local/bin/
