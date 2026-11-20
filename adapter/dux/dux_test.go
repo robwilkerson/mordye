@@ -178,6 +178,82 @@ func TestUnsafeThemeIDIsRejected(t *testing.T) {
 	}
 }
 
+// optionSettings selects a fixed theme and records each option choice as Dux
+// does for an options theme: a plain variant id, not a flavor and accent.
+func optionSettings(choices map[string]string) []byte {
+	b, _ := json.Marshal(map[string]any{"currentThemeName": "custom", "registryThemeVariants": choices})
+	return b
+}
+
+func TestAnOptionsThemeUsesTheChosenOption(t *testing.T) {
+	out := parse(t, optionSettings(map[string]string{"rosePine": "moon"}), "rose-pine")
+	if out.Name != "rosePine-moon" || out.UI.Background != "#232136" {
+		t.Errorf("name %q, background %s; want rosePine-moon on Moon's #232136", out.Name, out.UI.Background)
+	}
+	if out.Sources["terminal.background"] != "palette.rose-pine-moon" {
+		t.Errorf("terminal from %q, want Moon's own palette", out.Sources["terminal.background"])
+	}
+}
+
+// The default option keeps the theme's bare id, so its name doesn't change.
+func TestAnOptionsThemeWithNoChoiceUsesItsDefault(t *testing.T) {
+	for themeName, want := range map[string]string{"rose-pine": "rosePine", "gruvbox-material": "gruvboxMaterial"} {
+		if got := parse(t, nil, themeName).Name; got != want {
+			t.Errorf("%s: name %q, want %q", themeName, got, want)
+		}
+	}
+}
+
+// With no default and no choice, Dux draws the theme's own colors, with no
+// option laid over them.
+func TestAnOptionsThemeWithNoDefaultUsesItsOwnColors(t *testing.T) {
+	var raw map[string]any
+	if err := json.Unmarshal(theme(t, "rose-pine"), &raw); err != nil {
+		t.Fatal(err)
+	}
+	delete(raw["variants"].(map[string]any), "default")
+	b, _ := json.Marshal(raw)
+	in, err := Parse(nil, b)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Rosé Pine's own colors leave the surfaces to its options.
+	want := raw["dark"].(map[string]any)["primary"]
+	if in.Name != "rosePine" || in.Colors["primary"] != want || in.Colors["background"] != "" {
+		t.Errorf("name %q, primary %s, background %q; want rosePine with its own %s and no option's background",
+			in.Name, in.Colors["primary"], in.Colors["background"], want)
+	}
+}
+
+// Dawn is a light theme, and its palette waits for light support (#27).
+func TestDawnNamesNoPaletteYet(t *testing.T) {
+	in, err := Parse(optionSettings(map[string]string{"rosePine": "dawn"}), theme(t, "rose-pine"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if in.Name != "rosePine-dawn" || in.Palette != "" {
+		t.Errorf("name %q, palette %q; want rosePine-dawn with no palette", in.Name, in.Palette)
+	}
+}
+
+// Settings hold every theme's choice, so an options theme's plain id must not
+// stop a different theme from parsing.
+func TestAnOptionChoiceDoesNotBreakAnotherTheme(t *testing.T) {
+	s := []byte(`{"currentThemeName": "custom", "registryThemeVariants": {
+		"rosePine": "moon",
+		"catppuccin": {"dark": {"flavor": "macchiato", "accent": "green"}}}}`)
+	if got := parse(t, s, "catppuccin").Name; got != "catppuccin-macchiato" {
+		t.Errorf("name %q, want catppuccin-macchiato", got)
+	}
+}
+
+func TestRejectsAnUnknownOption(t *testing.T) {
+	_, err := Parse(optionSettings(map[string]string{"rosePine": "eclipse"}), theme(t, "rose-pine"))
+	if err == nil || !strings.Contains(err.Error(), "eclipse") {
+		t.Errorf("err = %v, want one naming the unknown option", err)
+	}
+}
+
 func TestRejectsAnUnknownFlavorOrAccent(t *testing.T) {
 	for _, s := range [][]byte{
 		settings("catppuccin", "espresso", "green"),

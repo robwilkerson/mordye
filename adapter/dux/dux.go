@@ -16,15 +16,18 @@ import (
 )
 
 type settingsFile struct {
-	CurrentThemeName      string `json:"currentThemeName"`
-	RegistryThemeVariants map[string]struct {
-		Dark choice `json:"dark"`
-	} `json:"registryThemeVariants"`
+	CurrentThemeName string `json:"currentThemeName"`
+	// Each theme's choice, in the shape its variants take: an object for a
+	// flavors theme, a plain option id for an options theme.
+	RegistryThemeVariants map[string]json.RawMessage `json:"registryThemeVariants"`
 }
 
+// choice is what the settings pick for one theme: a flavor and accent, or an
+// option.
 type choice struct {
 	Flavor string `json:"flavor"`
 	Accent string `json:"accent"`
+	Option string `json:"-"`
 }
 
 type themeFile struct {
@@ -33,6 +36,10 @@ type themeFile struct {
 	Variants *variants      `json:"variants"`
 }
 
+// variants comes in two shapes. A flavors theme (type "multi", such as
+// Catppuccin) has flavors, each with an accent menu. An options theme (such
+// as Rosé Pine) has a plain list of options, each overriding some of the
+// theme's colors.
 type variants struct {
 	Type     string `json:"type"`
 	Defaults struct {
@@ -43,6 +50,12 @@ type variants struct {
 		Dark map[string]any `json:"dark"`
 	} `json:"flavors"`
 	Accents []map[string]any `json:"accents"`
+
+	Default string `json:"default"`
+	Options []struct {
+		ID   string         `json:"id"`
+		Dark map[string]any `json:"dark"`
+	} `json:"options"`
 }
 
 // roles maps Dux theme roles to Mordye's. The two text roles are handled
@@ -67,7 +80,8 @@ var textRoles = []string{"backgroundText", "surfaceText"}
 // palette of that theme's official terminal port. Where Dux ships several
 // themes for one port family, each takes the port with the closest dark
 // background: Dux's three Tokyo Night themes other than Storm all use Night's
-// darkest shade.
+// darkest shade. Light themes, such as Rosé Pine's Dawn, wait for light
+// support (#27).
 var palettes = map[string]string{
 	"catppuccin-mocha":     "catppuccin-mocha",
 	"catppuccin-macchiato": "catppuccin-macchiato",
@@ -77,6 +91,7 @@ var palettes = map[string]string{
 	"kanagawaWl":           "kanagawa",
 	"nord":                 "nord",
 	"rosePine":             "rose-pine",
+	"rosePine-moon":        "rose-pine-moon",
 	"solarizedOsakaNight":  "solarized-osaka-dark",
 	"tokyoNight":           "tokyonight-night",
 	"tokyoNightDark":       "tokyonight-night",
@@ -99,12 +114,9 @@ func Parse(settings, theme []byte) (mordye.Input, error) {
 		return mordye.Input{}, err
 	}
 
-	dark, swatches, name, accent := t.Dark, map[string]string{}, t.ID, ""
-	if t.Variants != nil && t.Variants.Type == "multi" {
-		dark, swatches, name, accent, err = resolveVariant(t, pick)
-		if err != nil {
-			return mordye.Input{}, err
-		}
+	dark, swatches, name, accent, err := resolve(t, pick)
+	if err != nil {
+		return mordye.Input{}, err
 	}
 
 	in := mordye.Input{
@@ -149,7 +161,76 @@ func choiceFor(settings []byte, t themeFile) (choice, error) {
 	if s.CurrentThemeName != "custom" {
 		return choice{}, fmt.Errorf("the active theme (%s) isn't a fixed theme; mordye reads fixed themes only", s.CurrentThemeName)
 	}
-	return s.RegistryThemeVariants[t.ID].Dark, nil
+	raw := s.RegistryThemeVariants[t.ID]
+	var c choice
+	var err error
+	switch {
+	case len(raw) == 0:
+	case raw[0] == '"':
+		err = json.Unmarshal(raw, &c.Option)
+	default:
+		var v struct {
+			Dark choice `json:"dark"`
+		}
+		err = json.Unmarshal(raw, &v)
+		c = v.Dark
+	}
+	if err != nil {
+		return choice{}, fmt.Errorf("reading the settings' choice for %s: %w", t.ID, err)
+	}
+	return c, nil
+}
+
+// resolve returns the colors the choice selects, whichever shape the theme's
+// variants take, along with the swatches, name, and accent for Mordye's input.
+func resolve(t themeFile, pick choice) (dark map[string]any, swatches map[string]string, name, accent string, err error) {
+	switch {
+	case t.Variants != nil && t.Variants.Type == "multi":
+		return resolveVariant(t, pick)
+	case t.Variants != nil && len(t.Variants.Options) > 0:
+		dark, name, err = resolveOption(t, pick)
+		return dark, map[string]string{}, name, "", err
+	default:
+		return t.Dark, map[string]string{}, t.ID, "", nil
+	}
+}
+
+// resolveOption lays the chosen option's colors over the theme's own, as Dux
+// does, falling back to the theme's default option, or to the theme's own
+// colors when it has none. The default keeps the theme's bare id as its name;
+// another option adds its own id.
+func resolveOption(t themeFile, pick choice) (map[string]any, string, error) {
+	v := t.Variants
+	id := pick.Option
+	if id == "" {
+		id = v.Default
+	}
+	if id == "" {
+		return t.Dark, t.ID, nil
+	}
+	var ids []string
+	for _, o := range v.Options {
+		ids = append(ids, o.ID)
+		if o.ID != id {
+			continue
+		}
+		if o.Dark == nil {
+			return nil, "", fmt.Errorf("theme %s: option %q has no dark colors", t.ID, id)
+		}
+		dark := map[string]any{}
+		for k, val := range t.Dark {
+			dark[k] = val
+		}
+		for k, val := range o.Dark {
+			dark[k] = val
+		}
+		name := t.ID
+		if id != v.Default {
+			name += "-" + id
+		}
+		return dark, name, nil
+	}
+	return nil, "", fmt.Errorf("theme %s has no option %q; options: %v", t.ID, id, ids)
 }
 
 // resolveVariant picks the chosen flavor and accent from a multi-variant
