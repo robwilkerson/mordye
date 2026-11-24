@@ -12,6 +12,10 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
+## 0.3.0
+
+Released 2026-11-24.
+
 - **Everforest, Gruvbox, and Gruvbox Material get their official terminal
   colors.** Their terminals used to be hue-matched guesses; Mordye now bundles
   the colors each theme's Vim colorscheme sets, in every contrast, dark and
