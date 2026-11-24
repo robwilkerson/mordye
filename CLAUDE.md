@@ -41,13 +41,15 @@ The README promises these, and tests encode them:
 - The accent moves only `primary`, `on_primary` (when generated), `secondary`, `tertiary`, and the terminal cursor: chrome, never the 16 terminal colors.
 - Swatches reach the interface only as a missing `error`, `warning`, or `info`, by way of the terminal slot. They never become any other role.
 - The output always has all 37 fields, plus `sources`.
-- Every output field records its origin in `sources`; a missing or wrong entry is a bug.
+- Every output field records its origin in `sources`; a missing or wrong entry is a bug. Its shape and wording aren't a contract, though: callers are told not to build on it, so change them freely.
 - A generated color keeps its slot's usual hue, at the palette's own chroma and lightness. Nothing pulls it toward the accent.
 - The output is deterministic: the same input gives byte-identical output, with no map-order or float-formatting drift.
 - The README's field counts, adapter table, and command examples match what the code does.
 
 Callers template against the output shape. A change to it, or to `Version`, is
 breaking; flag it and apply the `👀 Attention` label.
+`docs/decisions/0003-format-versioning.md` says which changes bump `Version`:
+additions, generated-color tuning, and changes to `sources` don't.
 
 ## Tests
 

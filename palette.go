@@ -14,7 +14,9 @@ import (
 	"strings"
 )
 
-// Version is the input and output format version.
+// Version is the input and output format version. It changes only when an
+// existing field is removed, renamed, or changes meaning or format; see
+// docs/decisions/0003-format-versioning.md.
 const Version = 1
 
 // Input is a sparse palette, as an adapter writes it.

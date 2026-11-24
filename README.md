@@ -144,7 +144,9 @@ The output always has the same 37 fields:
 - **15 interface roles**, such as `primary`, `background`, `surface_container_high`, and `on_surface`
 - **22 terminal fields**: background, foreground, cursor, cursor text, selection, and the 16 normal and bright colors
 
-A `sources` map records where each field came from: passed through, taken from a bundled palette, a role, or a swatch, or generated.
+A `sources` map records where each field came from: passed through, taken from a bundled palette, a role, or a swatch, or generated. It's debug information, not part of the format: its shape and values can change in any release, so don't build on it.
+
+**Versioning.** Input and output share one `version`. It changes only when an existing field is removed or renamed, or its value changes meaning or format. New fields, better generated colors, and changes to `sources` don't change it. Input must match the version exactly. A stored palette whose `version` differs from the one you templated against may not read the same way. [ADR 0003](docs/decisions/0003-format-versioning.md) has the reasoning.
 
 The palette goes to stdout and errors to stderr. A failure never writes a partial palette, and the exit status says what went wrong:
 
@@ -245,7 +247,6 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 - **Dark themes only.** Mordye completes a theme's dark variant, and its tuning assumes a dark background. Light themes are [#27](https://github.com/robwilkerson/mordye/issues/27).
 - **One built-in source.** Dux Shell is the only theme adapter so far. Any other source has to write Mordye's input format itself.
 - **Some themes have no bundled palette.** A theme without a qualifying official port gets hue-matched terminal colors. Everforest, Gruvbox, and Gruvbox Material are next ([#40](https://github.com/robwilkerson/mordye/issues/40)).
-- **The format may still change.** How the input and output formats evolve, and what `sources` values look like, aren't settled yet ([#13](https://github.com/robwilkerson/mordye/issues/13), [#14](https://github.com/robwilkerson/mordye/issues/14)). Pin a version.
 - **Linux builds only.** Releases ship Linux binaries; other platforms build from source with `go install`.
 
 ## Credits

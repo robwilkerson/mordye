@@ -3,9 +3,9 @@
 What changes in each release, written for humans. Full detail lives in git;
 this is the readable digest.
 
-Versions follow [semantic versioning](https://semver.org). Until 1.0, a minor
-version may still change the input or output format
-([#13](https://github.com/robwilkerson/mordye/issues/13)).
+Versions follow [semantic versioning](https://semver.org). A change to the
+input or output format ships as a minor release until 1.0, and a major one
+after ([ADR 0003](docs/decisions/0003-format-versioning.md)).
 
 Items under **Unreleased** are merged but not yet released. `just release`
 moves them under a version heading when it cuts the release.
