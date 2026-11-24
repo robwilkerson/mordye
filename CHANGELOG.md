@@ -12,9 +12,9 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
-- **Bright white is never dimmer than your text.** It used to be able to come
-  out dimmer than the terminal foreground when the theme's secondary text color
-  was less tinted.
+- **Generated bright white is never dimmer than your text.** It used to be able
+  to come out dimmer than the terminal foreground when the theme's secondary
+  text color was less tinted. A bright white you pass in is used as given.
 - **White follows the bright white you pass in.** It used to be derived from
   Mordye's own bright white, even when the input supplied one.
 - **`sources` tells the truth about bright black.** When the input supplies
