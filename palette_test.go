@@ -173,12 +173,25 @@ func TestNamedRolesWinOverSwatches(t *testing.T) {
 	}
 }
 
-func TestAccentDoesNotMoveTerminalColors(t *testing.T) {
-	green := complete(t, macchiato())
-	mauve := macchiato()
-	mauve.Colors["primary"], mauve.Colors["secondary"] = "#c6a0f6", "#b7bdf8"
-	if got := complete(t, mauve).Terminal; got.Normal != green.Terminal.Normal || got.Bright != green.Terminal.Bright {
-		t.Errorf("changing the accent changed the 16 terminal colors:\n green %+v\n mauve %+v", green.Terminal.Normal, got.Normal)
+// The accent moves primary, the text on it, secondary, tertiary, and the
+// terminal cursor. Nothing else, including the 16 terminal colors, moves.
+func TestAccentMovesOnlyTheAccentRoles(t *testing.T) {
+	green := fields(t, complete(t, macchiato()))
+	in := macchiato()
+	in.Accent = "mauve"
+	in.Colors["primary"], in.Colors["secondary"] = "#c6a0f6", "#b7bdf8"
+	mauve := fields(t, complete(t, in))
+	moves := map[string]bool{
+		"ui.primary": true, "ui.on_primary": true, "ui.secondary": true, "ui.tertiary": true,
+		"terminal.cursor": true, "terminal.cursor_text": true,
+	}
+	for field, hex := range green {
+		if !moves[field] && mauve[field] != hex {
+			t.Errorf("%s moved with the accent: %s under green, %s under mauve", field, hex, mauve[field])
+		}
+	}
+	if mauve["terminal.cursor"] != mauve["ui.primary"] {
+		t.Errorf("cursor %s, want the accent's primary %s", mauve["terminal.cursor"], mauve["ui.primary"])
 	}
 }
 
@@ -222,6 +235,41 @@ func TestMissingStatusRolesMatchTheSourcesTerminalColors(t *testing.T) {
 	if out.UI.Error != out.Terminal.Normal.Red || out.UI.Error != "#ff5555" {
 		t.Errorf("error = %s, terminal red = %s; want both the source's #ff5555",
 			out.UI.Error, out.Terminal.Normal.Red)
+	}
+}
+
+// Swatches reach the interface only as a missing error, warning, or info, by
+// way of the terminal slot; never as any other role, and never directly.
+func TestSwatchesReachTheInterfaceOnlyAsStatusRoles(t *testing.T) {
+	in := Input{
+		Version: Version,
+		Colors:  map[string]string{"primary": "#c6a0f6", "on_surface": "#cad3f5"},
+		Swatches: map[string]string{
+			"red": "#ed8796", "yellow": "#eed49f", "blue": "#8aadf4", "teal": "#8bd5ca",
+			"base": "#24273a", "surface": "#363a4f", "overlay": "#6e738d", "subtext": "#a5adcb",
+		},
+	}
+	out := complete(t, in)
+	status := map[string]bool{"ui.error": true, "ui.warning": true, "ui.info": true}
+	for field, src := range out.Sources {
+		if !strings.HasPrefix(field, "ui.") {
+			continue
+		}
+		if strings.HasPrefix(src, "swatches.") {
+			t.Errorf("%s came straight from %s", field, src)
+		}
+		if status[field] && !strings.HasPrefix(src, "terminal.normal.") {
+			t.Errorf("%s came from %s, want its terminal slot", field, src)
+		}
+	}
+	swatchHexes := map[string]bool{}
+	for _, hex := range in.Swatches {
+		swatchHexes[hex] = true
+	}
+	for field, hex := range fields(t, out) {
+		if strings.HasPrefix(field, "ui.") && !status[field] && swatchHexes[hex] {
+			t.Errorf("%s is the swatch color %s", field, hex)
+		}
 	}
 }
 
@@ -326,10 +374,23 @@ func TestMissingSlotIsGeneratedAtItsHue(t *testing.T) {
 // muted green rather than a vivid one.
 func TestGeneratedColorMatchesPaletteIntensity(t *testing.T) {
 	out := complete(t, sparse())
-	green := mustHex(t, out.Terminal.Normal.Green).lch()
-	red := mustHex(t, out.Terminal.Normal.Red).lch()
-	if green.C > red.C*1.5 {
-		t.Errorf("generated green chroma %.3f is far above the palette's red %.3f", green.C, red.C)
+	red := mustHex(t, out.Terminal.Normal.Red).lch() // the theme's own error color
+	generated := 0
+	for _, slot := range Slots {
+		if out.Sources["terminal.normal."+slot] != "generated" {
+			continue
+		}
+		generated++
+		c := mustHex(t, out.Terminal.Normal.get(slot)).lch()
+		if c.C < red.C*0.5 || c.C > red.C*1.5 {
+			t.Errorf("generated %s chroma %.3f is far from the palette's red %.3f", slot, c.C, red.C)
+		}
+		if math.Abs(c.L-red.L) > 0.1 {
+			t.Errorf("generated %s lightness %.3f is far from the palette's red %.3f", slot, c.L, red.L)
+		}
+	}
+	if generated == 0 {
+		t.Fatal("no slot was generated; the fixture no longer exercises this")
 	}
 }
 
@@ -534,38 +595,8 @@ func TestBrightWhiteIsNeverDimmerThanTheForeground(t *testing.T) {
 
 func TestOutputAlwaysHasEveryField(t *testing.T) {
 	for name, in := range map[string]Input{"full": macchiato(), "sparse": sparse()} {
-		raw, err := json.Marshal(complete(t, in))
-		if err != nil {
-			t.Fatal(err)
-		}
-		var out struct {
-			UI       map[string]string          `json:"ui"`
-			Terminal map[string]json.RawMessage `json:"terminal"`
-		}
-		if err := json.Unmarshal(raw, &out); err != nil {
-			t.Fatal(err)
-		}
-		colors := map[string]string{}
-		for k, v := range out.UI {
-			colors["ui."+k] = v
-		}
-		for k, v := range out.Terminal {
-			if k == "normal" || k == "bright" {
-				var ansi map[string]string
-				if err := json.Unmarshal(v, &ansi); err != nil {
-					t.Fatal(err)
-				}
-				for slot, hex := range ansi {
-					colors["terminal."+k+"."+slot] = hex
-				}
-				continue
-			}
-			var hex string
-			if err := json.Unmarshal(v, &hex); err != nil {
-				t.Fatal(err)
-			}
-			colors["terminal."+k] = hex
-		}
+		out := complete(t, in)
+		colors := fields(t, out)
 		if len(colors) != 37 {
 			t.Errorf("%s: %d fields, want 37", name, len(colors))
 		}
@@ -573,6 +604,51 @@ func TestOutputAlwaysHasEveryField(t *testing.T) {
 			if _, err := parseHex(hex); err != nil {
 				t.Errorf("%s: %s = %q, want a #rrggbb color", name, field, hex)
 			}
+			if out.Sources[field] == "" {
+				t.Errorf("%s: sources has no entry for %s", name, field)
+			}
+		}
+		if len(out.Sources) != len(colors) {
+			t.Errorf("%s: sources has %d entries, want one per field (%d)", name, len(out.Sources), len(colors))
 		}
 	}
+}
+
+// fields flattens an output's colors as they appear in its JSON, keyed the way
+// sources names them, such as "ui.primary" or "terminal.normal.red".
+func fields(t *testing.T, o Output) map[string]string {
+	t.Helper()
+	raw, err := json.Marshal(o)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out struct {
+		UI       map[string]string          `json:"ui"`
+		Terminal map[string]json.RawMessage `json:"terminal"`
+	}
+	if err := json.Unmarshal(raw, &out); err != nil {
+		t.Fatal(err)
+	}
+	colors := map[string]string{}
+	for k, v := range out.UI {
+		colors["ui."+k] = v
+	}
+	for k, v := range out.Terminal {
+		if k == "normal" || k == "bright" {
+			var ansi map[string]string
+			if err := json.Unmarshal(v, &ansi); err != nil {
+				t.Fatal(err)
+			}
+			for slot, hex := range ansi {
+				colors["terminal."+k+"."+slot] = hex
+			}
+			continue
+		}
+		var hex string
+		if err := json.Unmarshal(v, &hex); err != nil {
+			t.Fatal(err)
+		}
+		colors["terminal."+k] = hex
+	}
+	return colors
 }

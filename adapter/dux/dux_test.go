@@ -85,14 +85,6 @@ func TestSettingsChooseTheFlavorAndAccent(t *testing.T) {
 	}
 }
 
-func TestAccentMovesOnlyTheAccent(t *testing.T) {
-	green := parse(t, settings("catppuccin", "macchiato", "green"), "catppuccin")
-	peach := parse(t, settings("catppuccin", "macchiato", "peach"), "catppuccin")
-	if peach.Terminal.Normal != green.Terminal.Normal || peach.Terminal.Bright != green.Terminal.Bright {
-		t.Errorf("the accent moved the terminal colors:\n green %+v\n peach %+v", green.Terminal.Normal, peach.Terminal.Normal)
-	}
-}
-
 // Every output field stays put across accents except the accent's own roles:
 // primary, the text on it, and secondary with tertiary, which follows it as
 // Dux renders it. In the terminal, only the cursor shows the accent; the 16
