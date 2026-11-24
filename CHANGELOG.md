@@ -14,7 +14,8 @@ moves them under a version heading when it cuts the release.
 
 - **Light mode is an error, for now.** Input with `"mode": "light"` used to
   get dark surfaces under a light label; Mordye now refuses it until it can
-  complete light themes. Any `mode` other than `dark` is rejected too.
+  complete light themes. Leaving `mode` out, or empty, still means dark; any
+  other value is rejected.
 
 ## 0.2.0
 
