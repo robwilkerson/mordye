@@ -206,7 +206,9 @@ Without a port, each chromatic slot has a usual hue: red, yellow, green, cyan, b
 
 A slot no theme color fills is generated at its usual hue, at the palette's typical lightness and a little under its typical chroma. Typical means the median across the theme's colors, so a muted theme gets a muted green and a pastel theme a pastel one.
 
-Black is the highest surface rung the theme itself defines, and bright black is a step lighter. Bright white is the theme's least-tinted text color, and white is a step dimmer.
+Black is the highest surface rung the theme itself defines, and bright black is a step lighter. Bright white is the theme's least-tinted text color that is at least as light as the terminal foreground, and white is a step dimmer.
+
+When the input supplies its own bright white, white steps from it. When it supplies its own black, bright black still steps from the surface rung, and `sources` names that rung. Programs draw dim text, such as comments and shell suggestions, in bright black on the background. A step from a pure-black black would make that text invisible, and themes with a pure-black black pair it with a mid gray.
 
 **Example: Dracula's** theme file defines no green. Without its port, Mordye generates one at green's usual hue, as light as Dracula's other colors and nearly as saturated: `#86c279`.
 

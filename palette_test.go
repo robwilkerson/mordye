@@ -486,6 +486,52 @@ func TestBrightBlackAndWhiteStepAwayFromNormal(t *testing.T) {
 	}
 }
 
+func TestPassedThroughBrightWhiteDrivesWhite(t *testing.T) {
+	in := Input{
+		Version:  1,
+		Colors:   map[string]string{"primary": "#8aadf4", "on_surface": "#cad3f5"},
+		Terminal: TerminalInput{Bright: map[string]string{"white": "#ffffff"}},
+	}
+	out := complete(t, in)
+	if got, want := mustHex(t, out.Terminal.Normal.White).lch().L, 1-brightStep; math.Abs(got-want) > 0.01 {
+		t.Errorf("white %s has lightness %.3f, want a step below bright white's: %.3f", out.Terminal.Normal.White, got, want)
+	}
+	if got, want := out.Sources["terminal.normal.white"], "bright.white, dimmer"; got != want {
+		t.Errorf("sources[terminal.normal.white] = %q, want %q", got, want)
+	}
+}
+
+func TestBrightBlackStaysOnTheSurfaceWhenBlackIsPassedThrough(t *testing.T) {
+	plain := Input{Version: 1, Colors: map[string]string{"primary": "#8aadf4", "on_surface": "#cad3f5"}}
+	passed := plain
+	passed.Terminal = TerminalInput{Normal: map[string]string{"black": "#000000"}}
+	want := complete(t, plain).Terminal.Bright.Black
+	out := complete(t, passed)
+	if got := out.Terminal.Bright.Black; got != want {
+		t.Errorf("bright black = %s, want %s, a step above the surface rather than the passed black", got, want)
+	}
+	if got, want := out.Sources["terminal.bright.black"], "ui.surface_container_highest, lighter"; got != want {
+		t.Errorf("sources[terminal.bright.black] = %q, want %q", got, want)
+	}
+}
+
+func TestBrightWhiteIsNeverDimmerThanTheForeground(t *testing.T) {
+	dimVariant := Input{Version: 1, Colors: map[string]string{
+		"primary": "#8aadf4", "on_surface": "#cad3f5", "on_surface_variant": "#808080",
+	}}
+	brightForeground := Input{
+		Version:  1,
+		Colors:   map[string]string{"primary": "#8aadf4", "on_surface": "#cad3f5"},
+		Terminal: TerminalInput{Foreground: "#ffffff"},
+	}
+	for name, in := range map[string]Input{"dim variant": dimVariant, "bright foreground": brightForeground} {
+		term := complete(t, in).Terminal
+		if w, fg := mustHex(t, term.Bright.White).lch().L, mustHex(t, term.Foreground).lch().L; w < fg {
+			t.Errorf("%s: bright white %s is dimmer than the foreground %s", name, term.Bright.White, term.Foreground)
+		}
+	}
+}
+
 func TestOutputAlwaysHasEveryField(t *testing.T) {
 	for name, in := range map[string]Input{"full": macchiato(), "sparse": sparse()} {
 		raw, err := json.Marshal(complete(t, in))

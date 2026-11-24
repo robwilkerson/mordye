@@ -499,17 +499,42 @@ func (p *builder) fillSlots() {
 	}
 	black := p.ui[blackRole]
 	p.set("normal.black", black, "ui."+blackRole)
-	b := p.lchOf(black)
-	p.set("bright.black", lch{L: b.L + brightStep, C: b.C, H: b.H}.hex(), "normal.black, lighter")
-
-	// Whites: the least-tinted text color is bright white; white is a step
-	// dimmer.
-	white := "on_surface"
-	if v, ok := p.ui["on_surface_variant"]; ok && p.lchOf(v).C < p.lchOf(p.ui["on_surface"]).C {
-		white = "on_surface_variant"
+	// Bright black steps from that surface even when the source passes its own
+	// black. Programs draw dim text in bright black on the background, and a
+	// step from a pure-black black would be invisible; themes with one pair it
+	// with a mid gray instead.
+	brightBlackSrc := "normal.black, lighter"
+	if _, ok := p.in.Terminal.Normal["black"]; ok {
+		brightBlackSrc = "ui." + blackRole + ", lighter"
 	}
-	p.set("bright.white", p.ui[white], "colors."+white)
-	w := p.lchOf(p.ui[white])
+	b := p.lchOf(black)
+	p.set("bright.black", lch{L: b.L + brightStep, C: b.C, H: b.H}.hex(), brightBlackSrc)
+
+	// Whites: bright white is the least-tinted text color that is at least as
+	// light as the terminal foreground, so it never reads dimmer than plain
+	// text. The foreground itself always qualifies. White is a step dimmer.
+	fg, fgSrc := p.ui["on_surface"], "colors.on_surface"
+	if hex := p.in.Terminal.Foreground; hex != "" {
+		fg, fgSrc = hex, p.termSrc+".foreground"
+	}
+	white, whiteSrc := fg, fgSrc
+	fgL := p.lchOf(fg).L
+	for _, role := range []string{"on_surface", "on_surface_variant"} {
+		hex, ok := p.in.Colors[role]
+		if !ok {
+			continue
+		}
+		if c := p.lchOf(hex); c.L >= fgL && c.C < p.lchOf(white).C {
+			white, whiteSrc = hex, "colors."+role
+		}
+	}
+	p.set("bright.white", white, whiteSrc)
+	// White follows a bright white the source passes, which passThrough
+	// applies, so the pair stays a pair.
+	if hex, ok := p.in.Terminal.Bright["white"]; ok {
+		white = hex
+	}
+	w := p.lchOf(white)
 	p.set("normal.white", lch{L: w.L - brightStep, C: w.C, H: w.H}.hex(), "bright.white, dimmer")
 }
 
