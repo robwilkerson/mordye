@@ -33,6 +33,10 @@ type PaletteSource struct {
 	Commit string `json:"commit"` // the full commit SHA the file was read at
 	Path   string `json:"path"`   // the port file, within the repo
 	Format string `json:"format"` // the converter that read it, such as "kitty"
+	// Options pick a variant of a Vim colorscheme, set as global variables
+	// before it loads, such as everforest_background=hard. Only the vim
+	// format takes them.
+	Options map[string]string `json:"options,omitempty"`
 }
 
 // License records the upstream license and where it's stated, at the same

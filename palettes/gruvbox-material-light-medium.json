@@ -1,0 +1,42 @@
+{
+  "id": "gruvbox-material-light-medium",
+  "mode": "light",
+  "source": {
+    "repo": "sainnhe/gruvbox-material",
+    "commit": "11d779b26a9ab2b3db8c22c6ac9fb6e8ed4fea79",
+    "path": "colors/gruvbox-material.vim",
+    "format": "vim",
+    "options": {
+      "gruvbox_material_background": "medium"
+    }
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/sainnhe/gruvbox-material/blob/11d779b26a9ab2b3db8c22c6ac9fb6e8ed4fea79/LICENSE",
+    "notice": "notices/sainnhe-gruvbox-material.txt"
+  },
+  "terminal": {
+    "background": "#fbf1c7",
+    "foreground": "#654735",
+    "normal": {
+      "black": "#654735",
+      "blue": "#45707a",
+      "cyan": "#4c7a5d",
+      "green": "#6c782e",
+      "magenta": "#945e80",
+      "red": "#c14a4a",
+      "white": "#ddccab",
+      "yellow": "#b47109"
+    },
+    "bright": {
+      "black": "#654735",
+      "blue": "#45707a",
+      "cyan": "#4c7a5d",
+      "green": "#6c782e",
+      "magenta": "#945e80",
+      "red": "#c14a4a",
+      "white": "#ddccab",
+      "yellow": "#b47109"
+    }
+  }
+}

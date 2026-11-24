@@ -1,0 +1,42 @@
+{
+  "id": "everforest-dark-hard",
+  "mode": "dark",
+  "source": {
+    "repo": "sainnhe/everforest",
+    "commit": "85a86eb62409e3ec88713bff3d1b9d7374e112e4",
+    "path": "colors/everforest.vim",
+    "format": "vim",
+    "options": {
+      "everforest_background": "hard"
+    }
+  },
+  "license": {
+    "spdx": "MIT",
+    "url": "https://github.com/sainnhe/everforest/blob/85a86eb62409e3ec88713bff3d1b9d7374e112e4/LICENSE",
+    "notice": "notices/sainnhe-everforest.txt"
+  },
+  "terminal": {
+    "background": "#272e33",
+    "foreground": "#d3c6aa",
+    "normal": {
+      "black": "#414b50",
+      "blue": "#7fbbb3",
+      "cyan": "#83c092",
+      "green": "#a7c080",
+      "magenta": "#d699b6",
+      "red": "#e67e80",
+      "white": "#d3c6aa",
+      "yellow": "#dbbc7f"
+    },
+    "bright": {
+      "black": "#414b50",
+      "blue": "#7fbbb3",
+      "cyan": "#83c092",
+      "green": "#a7c080",
+      "magenta": "#d699b6",
+      "red": "#e67e80",
+      "white": "#d3c6aa",
+      "yellow": "#dbbc7f"
+    }
+  }
+}

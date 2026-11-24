@@ -3,17 +3,12 @@
 #
 #   bin/readme-swatches.sh
 #
-# One image per way Mordye gets terminal colors: Catppuccin Mocha uses its
-# bundled palette, and Gruvbox Material, which has none yet, falls back to
-# matching by hue.
-#
-# Mordye's rows come from running Mordye on the Dux fixtures, so rerun this
-# after any change to how Mordye picks terminal colors. A bundled theme's
-# official row is read from its palette file, so it can't drift from what
-# Mordye ships. The other rows are fixed: Gruvbox Material's official colors,
-# and the palette Dux generated for Catppuccin, read from Dux's cache
-# (~/.cache/dms/dms-colors.json, the dark color0-7 of its dank16 palette) on
-# 2026-11-15.
+# Mordye's row comes from running Mordye on the Dux fixture, so rerun this
+# after any change to how Mordye picks terminal colors. The official row is
+# read from the bundled palette file, so it can't drift from what Mordye
+# ships. Dux's rows are fixed: the palette Dux generated for Catppuccin, read
+# from Dux's cache (~/.cache/dms/dms-colors.json, the dark color0-7 of its
+# dank16 palette) on 2026-11-15.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -85,14 +80,3 @@ svg assets/catppuccin-mocha-terminal.svg \
 	"Mordye|mauve or green accent|$(mordye_row mocha mauve catppuccin)" \
 	"Dux|mauve accent|#181825 #ff728c #7bf797 #ffdb72 #b88eea #55307f #cba6f7 #f6efff" \
 	"Dux|green accent|#181825 #ff9372 #74e371 #ffee72 #92d78c #2f5f36 #a6e3a1 #e0eee2"
-
-# Gruvbox Material's official colors are what its Vim colorscheme sets for the
-# terminal, dark with medium contrast and the default material foreground:
-# sainnhe/gruvbox-material at 11d779b26a9ab2b3db8c22c6ac9fb6e8ed4fea79,
-# colors/gruvbox-material.vim (s:terminal) and autoload/gruvbox_material.vim
-# (the palette). Black is bg5, white is fg0, and cyan is aqua.
-svg assets/gruvbox-material-terminal.svg \
-	"Gruvbox Material's eight terminal colors: the official palette, and Mordye's from the theme file alone." \
-	"#282828" "#d4be98" "#a89984" \
-	"Gruvbox Material|official palette|#5a524c #ea6962 #a9b665 #d8a657 #7daea3 #d3869b #89b482 #d4be98" \
-	"Mordye|from the theme file alone|$(mordye_row '' '' gruvbox-material)"
