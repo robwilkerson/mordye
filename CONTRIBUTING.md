@@ -60,9 +60,9 @@ even popular ones, because ports of one theme can disagree.
 
 **Steps:**
 
-1. **Check the format.** `tools/palettes` reads `kitty` and `xresources` today.
-   A new format needs a converter in `converters/`: one file and one function,
-   tested against the real upstream port copied into
+1. **Check the format.** `tools/palettes` reads `kitty`, `xresources`, and
+   `vim` today. A new format needs a converter in `converters/`: one file and
+   one function, tested against the real upstream port copied into
    `converters/testdata/<format>/`.
 2. **Write the palette** from the port at a full commit SHA, from the
    repository root:
@@ -80,6 +80,13 @@ even popular ones, because ports of one theme can disagree.
    in a README, pass `-license-path README.md -license-line <line>`. The tool
    writes `palettes/<id>.json` and the license notice under
    `palettes/notices/`. Never edit either by hand.
+
+   A theme whose terminal colors live only in its Vim colorscheme uses
+   `-format vim` with `-path colors/<name>.vim`. The tool loads it in headless
+   Neovim (`nvim` must be on your `PATH`), with the background from `-mode`
+   and each `-option name=value` set as a global variable to pick the variant,
+   such as `-option everforest_background=hard`. Name the id
+   `<theme>-<mode>-<variant>`.
 3. **Map the theme** to the new id in each adapter that knows it, such as the
    `palettes` map in `adapter/dux/dux.go`. A test there fails if an adapter
    maps to a palette that isn't bundled.

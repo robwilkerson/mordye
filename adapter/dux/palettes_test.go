@@ -1,6 +1,7 @@
 package dux
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/robwilkerson/mordye"
@@ -21,7 +22,10 @@ func TestEveryMappedPaletteIsBundled(t *testing.T) {
 }
 
 func TestAMappedThemeNamesItsPalette(t *testing.T) {
-	for name, want := range map[string]string{"catppuccin": "catppuccin-mocha", "dracula": "dracula", "rose-pine": "rose-pine"} {
+	for name, want := range map[string]string{
+		"catppuccin": "catppuccin-mocha", "dracula": "dracula", "rose-pine": "rose-pine",
+		"gruvbox-material": "gruvbox-material-dark-medium",
+	} {
 		in, err := Parse(nil, theme(t, name))
 		if err != nil {
 			t.Fatal(err)
@@ -32,10 +36,14 @@ func TestAMappedThemeNamesItsPalette(t *testing.T) {
 	}
 }
 
-// Gruvbox Material has no qualifying port yet (#40), so its terminal colors
-// stay generated.
+// A theme with no qualifying port keeps generated terminal colors. Every
+// fixture now has one, so this renames a real one.
 func TestAnUnmappedThemeNamesNoPalette(t *testing.T) {
-	in, err := Parse(nil, theme(t, "gruvbox-material"))
+	b := bytes.Replace(theme(t, "dracula"), []byte(`"id": "dracula"`), []byte(`"id": "unported"`), 1)
+	if bytes.Equal(b, theme(t, "dracula")) {
+		t.Fatal("the dracula fixture's id moved; update this test")
+	}
+	in, err := Parse(nil, b)
 	if err != nil {
 		t.Fatal(err)
 	}

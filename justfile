@@ -34,6 +34,7 @@ bootstrap:
     echo "📦 Checking optional tools..."
     MISSING_OPTIONAL=0
     command -v gh >/dev/null 2>&1 || { echo "⚪ gh not found (https://cli.github.com) - needed for issues, PRs, and just release"; MISSING_OPTIONAL=1; }
+    command -v nvim >/dev/null 2>&1 || { echo "⚪ nvim not found (https://neovim.io) - needed to add or check Vim-sourced palettes"; MISSING_OPTIONAL=1; }
     [ $MISSING_OPTIONAL -eq 0 ] && echo "✅ All optional tools found"
     echo ""
 

@@ -12,6 +12,10 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
+- **Everforest, Gruvbox, and Gruvbox Material get their official terminal
+  colors.** Their terminals used to be hue-matched guesses; Mordye now bundles
+  the colors each theme's Vim colorscheme sets, in every contrast, dark and
+  light. Dux's Everforest, Gruvbox Material, and Gruvbox Multi themes use them.
 - **Light mode is an error, for now.** Input with `"mode": "light"` used to
   get dark surfaces under a light label; Mordye now refuses it until it can
   complete light themes. Leaving `mode` out, or empty, still means dark; any

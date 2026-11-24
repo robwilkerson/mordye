@@ -4,10 +4,16 @@
 //	go run ./tools/palettes add -id catppuccin-mocha -mode dark \
 //	    -repo catppuccin/kitty -commit SHA -path themes/mocha.conf \
 //	    -format kitty -spdx MIT -license-path LICENSE
+//	go run ./tools/palettes add -id everforest-dark-hard -mode dark \
+//	    -repo sainnhe/everforest -commit SHA -path colors/everforest.vim \
+//	    -format vim -option everforest_background=hard -spdx MIT -license-path LICENSE
 //	go run ./tools/palettes check
 //
 // add fetches the port and its license at one commit, converts the port, and
 // writes palettes/<id>.json plus the license text under palettes/notices/.
+// The vim format has no port file: it loads the colorscheme in headless
+// Neovim, with the background from -mode and each -option as a global
+// variable, and reads back what it renders. Only it needs nvim.
 // check rebuilds every bundled palette from its recorded source and fails if
 // any file differs. Run both from the repository root.
 //
@@ -35,8 +41,11 @@ import (
 )
 
 // formatConverters maps a port format to the converter that reads it.
+// renderVim writes what Neovim renders in kitty's format, so vim reads with
+// the kitty converter.
 var formatConverters = map[string]func([]byte) (mordye.TerminalInput, error){
 	"kitty":      converters.Kitty,
+	"vim":        converters.Kitty,
 	"xresources": converters.Xresources,
 }
 
@@ -84,6 +93,17 @@ func add(args []string) error {
 	fs.StringVar(&s.spdx, "spdx", "", "the upstream license's SPDX id, such as MIT (required)")
 	fs.StringVar(&s.licensePath, "license-path", "", "the file that states the license, within the repo (required)")
 	fs.StringVar(&s.licLine, "license-line", "", "the line that states it, when that file is a README rather than a LICENSE")
+	fs.Func("option", "name=value: a global variable that picks a vim colorscheme's variant (repeatable)", func(kv string) error {
+		k, v, ok := strings.Cut(kv, "=")
+		if !ok {
+			return fmt.Errorf("%q: want name=value", kv)
+		}
+		if s.src.Options == nil {
+			s.src.Options = map[string]string{}
+		}
+		s.src.Options[k] = v
+		return nil
+	})
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -182,7 +202,16 @@ func build(s spec) (map[string][]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf("format %q has no converter; formats: %v", s.src.Format, formats())
 	}
-	port, err := fetch(s.src.Repo, s.src.Commit, s.src.Path)
+	if err := checkOptions(s.src); err != nil {
+		return nil, err
+	}
+	var port []byte
+	var err error
+	if s.src.Format == "vim" {
+		port, err = renderVim(s)
+	} else {
+		port, err = fetch(s.src.Repo, s.src.Commit, s.src.Path)
+	}
 	if err != nil {
 		return nil, err
 	}

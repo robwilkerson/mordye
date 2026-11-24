@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestSpecOfRecoversWhatABundledPaletteWasBuiltFrom(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got.id != "catppuccin-mocha" || got.mode != "dark" || got.src != p.Source ||
+	if got.id != "catppuccin-mocha" || got.mode != "dark" || !reflect.DeepEqual(got.src, p.Source) ||
 		got.spdx != "MIT" || got.licensePath != "LICENSE" || got.licLine != "" {
 		t.Errorf("spec %+v, want the id, mode, source, and LICENSE the file records", got)
 	}
@@ -77,8 +78,9 @@ func TestCheckRejectsAPaletteFileNamedForAnotherID(t *testing.T) {
 	}
 }
 
-// Both fail before any fetch, so a bad spec never reaches the network.
-func TestBuildRejectsAMovableCommitOrAnUnknownFormat(t *testing.T) {
+// Each fails before any fetch, so a bad spec never reaches the network or
+// Neovim.
+func TestBuildRejectsABadSpecBeforeFetching(t *testing.T) {
 	for _, c := range []struct {
 		name string
 		src  mordye.PaletteSource
@@ -87,6 +89,12 @@ func TestBuildRejectsAMovableCommitOrAnUnknownFormat(t *testing.T) {
 		{"a branch name", mordye.PaletteSource{Commit: "main", Format: "kitty"}, "40-character"},
 		{"a short SHA", mordye.PaletteSource{Commit: "177d447", Format: "kitty"}, "40-character"},
 		{"an unknown format", mordye.PaletteSource{Commit: strings.Repeat("a", 40), Format: "alacritty"}, "alacritty"},
+		{"options on a port file", mordye.PaletteSource{Commit: strings.Repeat("a", 40), Format: "kitty",
+			Options: map[string]string{"everforest_background": "hard"}}, "vim format"},
+		{"a vim path outside colors/", mordye.PaletteSource{Commit: strings.Repeat("a", 40), Format: "vim",
+			Path: "autoload/everforest.vim"}, "colors/"},
+		{"an option that isn't a plain word", mordye.PaletteSource{Commit: strings.Repeat("a", 40), Format: "vim",
+			Path: "colors/everforest.vim", Options: map[string]string{"x": "hard' | !rm"}}, "option x"},
 	} {
 		_, err := build(spec{src: c.src})
 		if err == nil || !strings.Contains(err.Error(), c.want) {

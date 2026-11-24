@@ -49,9 +49,10 @@ func slot(o mordye.Output, name string) string {
 	}[name]
 }
 
-// The colors each theme defines land in their slots unchanged. These are the
-// exact matches the prototype found against each theme's official terminal
-// port.
+// The colors each theme defines land in their slots unchanged when no bundled
+// palette applies, so hue matching is checked against real themes. These are
+// the exact matches the prototype found against each theme's official
+// terminal port.
 func TestThemesKeepTheirOwnColors(t *testing.T) {
 	cases := []struct {
 		theme, flavor, accent string
@@ -68,7 +69,15 @@ func TestThemesKeepTheirOwnColors(t *testing.T) {
 		{"rose-pine", "", "", map[string]string{"red": "#eb6f92", "yellow": "#f6c177", "magenta": "#c4a7e7"}},
 	}
 	for _, c := range cases {
-		out := parse(t, settings(c.theme, c.flavor, c.accent), c.theme)
+		in, err := Parse(settings(c.theme, c.flavor, c.accent), theme(t, c.theme))
+		if err != nil {
+			t.Fatal(err)
+		}
+		in.Palette = ""
+		out, err := mordye.Complete(in)
+		if err != nil {
+			t.Fatal(err)
+		}
 		for name, hex := range c.want {
 			if got := slot(out, name); got != hex {
 				t.Errorf("%s %s: %s = %s (from %s), want %s",

@@ -54,7 +54,7 @@ Primary is the theme's own (the green accent), and tertiary copies secondary. Re
 
 ## How It Compares
 
-Each image shows a theme's eight normal terminal colors next to its official palette, one for each way Mordye gets them: from a [bundled palette](#bundled-palettes), and by falling back to the theme file alone.
+The image shows a theme's eight normal terminal colors next to its official palette, from a [bundled palette](#bundled-palettes).
 
 ![Catppuccin Mocha's terminal colors: official, Mordye, and Dux under two accents](assets/catppuccin-mocha-terminal.svg)
 
@@ -62,11 +62,7 @@ Each image shows a theme's eight normal terminal colors next to its official pal
 
 Dux is here because it's the shell I use, and the comparison is a fair one rather than a knock on it. Building terminal colors from the accent is the Material You approach, and Dux follows it as designed; many shells and theme tools do the same. Mordye is for when you want the theme's own colors instead.
 
-![Gruvbox Material's terminal colors: official and Mordye](assets/gruvbox-material-terminal.svg)
-
-**Gruvbox Material, from the theme file alone.** It has no bundled palette yet, so Mordye matches by hue. Red, green, and yellow are the theme's own colors, a step from the official ones because Dux's theme file has them slightly differently. Blue, magenta, and cyan are generated at each slot's usual hue, at Gruvbox's own lightness and chroma, but Gruvbox's official ones sit elsewhere: its blue is teal, and its cyan is green.
-
-Dux's rows are the palettes it generated on 2026-11-15. `bin/readme-swatches.sh` redraws both images, running Mordye for its rows.
+Dux's rows are the palettes it generated on 2026-11-15. `bin/readme-swatches.sh` redraws the image, running Mordye for its row.
 
 ## Install
 
@@ -185,13 +181,16 @@ A source with its own terminal colors can pass them in the input's `terminal` in
 
 #### Bundled Palettes
 
-Each bundled palette is a theme's official terminal port, made by the theme's own authors, under a license compatible with Mordye's MIT. Mordye stores them in one format and reads nothing else at runtime. A tool in the repository converts each upstream port at a pinned commit, and CI rebuilds every palette to prove the bundled copy is unchanged. [ADR 0002](docs/decisions/0002-bundled-terminal-palettes.md) has the reasoning.
+Each bundled palette is a theme's official terminal port, made by the theme's own authors, under a license compatible with Mordye's MIT. Mordye stores them in one format and reads nothing else at runtime. A tool in the repository converts each upstream port at a pinned commit, and CI rebuilds every palette to prove the bundled copy is unchanged. Some themes publish terminal colors only in their Vim colorscheme; the tool loads that in headless Neovim, with the options that pick the variant, and reads back what it sets. [ADR 0002](docs/decisions/0002-bundled-terminal-palettes.md) has the reasoning.
 
 | Theme | Palette ids | Official port | License |
 |---|---|---|---|
 | [Catppuccin](https://catppuccin.com) | `catppuccin-mocha`, `catppuccin-macchiato`, `catppuccin-frappe`, `catppuccin-latte` | [catppuccin/kitty](https://github.com/catppuccin/kitty) | MIT |
 | [Dracula](https://draculatheme.com) | `dracula` | [dracula/kitty](https://github.com/dracula/kitty) | MIT |
+| [Everforest](https://github.com/sainnhe/everforest) | `everforest-{dark,light}-{hard,medium,soft}` | [sainnhe/everforest](https://github.com/sainnhe/everforest) (Vim colorscheme) | MIT |
 | [Flexoki](https://stephango.com/flexoki) | `flexoki-dark`, `flexoki-light` | [kepano/flexoki](https://github.com/kepano/flexoki) | MIT |
+| [Gruvbox](https://github.com/morhetz/gruvbox) | `gruvbox-{dark,light}-{hard,medium,soft}` | [morhetz/gruvbox](https://github.com/morhetz/gruvbox) (Vim colorscheme) | MIT |
+| [Gruvbox Material](https://github.com/sainnhe/gruvbox-material) | `gruvbox-material-{dark,light}-{hard,medium,soft}` | [sainnhe/gruvbox-material](https://github.com/sainnhe/gruvbox-material) (Vim colorscheme) | MIT |
 | [Kanagawa](https://github.com/rebelot/kanagawa.nvim) | `kanagawa`, `kanagawa-dragon`, `kanagawa-light` | [rebelot/kanagawa.nvim](https://github.com/rebelot/kanagawa.nvim) | MIT |
 | [Nord](https://www.nordtheme.com) | `nord` | [nordtheme/xresources](https://github.com/nordtheme/xresources) | MIT |
 | [Rosé Pine](https://rosepinetheme.com) | `rose-pine`, `rose-pine-moon`, `rose-pine-dawn` | [rose-pine/kitty](https://github.com/rose-pine/kitty) | MIT |
@@ -246,7 +245,7 @@ Early development. The color rules were prototyped against seven themes: Catppuc
 
 - **Dark themes only.** Mordye completes a theme's dark variant, and its tuning assumes a dark background. Light themes are [#27](https://github.com/robwilkerson/mordye/issues/27).
 - **One built-in source.** Dux Shell is the only theme adapter so far. Any other source has to write Mordye's input format itself.
-- **Some themes have no bundled palette.** A theme without a qualifying official port gets hue-matched terminal colors. Everforest, Gruvbox, and Gruvbox Material are next ([#40](https://github.com/robwilkerson/mordye/issues/40)).
+- **Some themes have no bundled palette.** A theme without a qualifying official port, such as Modus or Adwaita, gets hue-matched terminal colors.
 - **Linux builds only.** Releases ship Linux binaries; other platforms build from source with `go install`.
 
 ## Credits
