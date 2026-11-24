@@ -12,6 +12,16 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
+- **Bright white is never dimmer than your text.** It used to be able to come
+  out dimmer than the terminal foreground when the theme's secondary text color
+  was less tinted.
+- **White follows the bright white you pass in.** It used to be derived from
+  Mordye's own bright white, even when the input supplied one.
+- **`sources` tells the truth about bright black.** When the input supplies
+  its own black, bright black still steps from the theme's surface so dim text
+  stays readable, and `sources` now names that surface instead of claiming it
+  came from your black.
+
 ## 0.2.0
 
 Released 2026-11-20.
