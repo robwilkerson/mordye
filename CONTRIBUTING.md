@@ -86,7 +86,9 @@ even popular ones, because ports of one theme can disagree.
    Neovim (`nvim` must be on your `PATH`), with the background from `-mode`
    and each `-option name=value` set as a global variable to pick the variant,
    such as `-option everforest_background=hard`. Name the id
-   `<theme>-<mode>-<variant>`.
+   `<theme>-<mode>-<variant>`. Loading a colorscheme runs its code, so `add`
+   and `check` run upstream Vim script at the pinned commit; review a new
+   source before adding it.
 3. **Map the theme** to the new id in each adapter that knows it, such as the
    `palettes` map in `adapter/dux/dux.go`. A test there fails if an adapter
    maps to a palette that isn't bundled.

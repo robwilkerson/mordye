@@ -45,6 +45,7 @@ var (
 // set from the palette's mode and each option set as a global variable, and
 // returns the colors it renders in kitty's format. Neovim reads what the
 // colorscheme sets, so no Vim script is parsed here (see docs/decisions/0002).
+// Loading it runs the colorscheme's own code, at the pinned commit.
 func renderVim(s spec) ([]byte, error) {
 	if path.Dir(s.src.Path) != "colors" || path.Ext(s.src.Path) != ".vim" {
 		return nil, fmt.Errorf("path %q: want colors/<name>.vim", s.src.Path)
@@ -80,14 +81,16 @@ func renderVim(s spec) ([]byte, error) {
 	}
 	dump := filepath.Join(tmp, "dump.conf")
 
-	args := []string{"--headless", "--clean", "-u", "NONE", "-i", "NONE", "--cmd", "set rtp^=" + repo}
+	// let &rtp takes the path as a plain string, so a space in it needs no
+	// escaping, as it would after set rtp^=.
+	args := []string{"--headless", "--clean", "-u", "NONE", "-i", "NONE", "--cmd", "let &rtp = $MORDYE_REPO . ',' . &rtp"}
 	for _, line := range setup {
 		args = append(args, "-c", line)
 	}
 	name := strings.TrimSuffix(path.Base(s.src.Path), ".vim")
 	args = append(args, "-c", "colorscheme "+name, "-S", script)
 	cmd := exec.Command(nvim, args...)
-	cmd.Env = append(os.Environ(), "MORDYE_DUMP="+dump)
+	cmd.Env = append(os.Environ(), "MORDYE_REPO="+repo, "MORDYE_DUMP="+dump)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return nil, fmt.Errorf("nvim: %w: %s", err, out)
 	}
