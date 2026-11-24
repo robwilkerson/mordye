@@ -76,6 +76,8 @@ jobs:
           # they live; it's read from the target branch, so a PR that changes a
           # rule is reviewed against the old one.
           config.repo_context_files: '["CLAUDE.md"]'
+          # Branch names don't count as tickets; only a link in the PR body does.
+          config.extract_issue_from_branch: 'false'
           # Upstream theme fixtures, copied unchanged; nothing to review. Matches
           # .coderabbit.yaml's path filters, so both reviewers see the same files.
           ignore.glob: '["adapter/*/testdata/**", "converters/*/testdata/**"]'
@@ -90,15 +92,52 @@ jobs:
           # Labels follow the repo's own type and priority scheme.
           pr_reviewer.enable_review_labels_security: 'false'
           pr_reviewer.enable_review_labels_effort: 'false'
-          # The most findings one /review reports; PR-Agent's default is 3.
-          pr_reviewer.num_max_findings: '10'
+          # The most findings one /review reports; PR-Agent's default is 3. Kept
+          # high so it never cuts a real finding: the prompt asks for "up to"
+          # this many, and earlier findings on the PR count toward it too.
+          pr_reviewer.num_max_findings: '30'
           # Each finding goes on the lines it's about; only findings that can't
           # be placed stay in the summary comment.
           pr_reviewer.inline_key_issues: 'true'
           # Quiet by design: drop the summary's intro line and its effort and
-          # tests rows, which carry no findings, and the comment announcing an
-          # in-place update.
+          # tests rows, which carry no findings, the security row, which repeats
+          # the findings posted inline, and the comment announcing an in-place
+          # update.
           pr_reviewer.enable_intro_text: 'false'
           pr_reviewer.require_estimate_effort_to_review: 'false'
           pr_reviewer.require_tests_review: 'false'
+          pr_reviewer.require_security_review: 'false'
           pr_reviewer.final_update_message: 'false'
+          # How to read the PR's intent, and the bar a finding must clear.
+          pr_reviewer.extra_instructions: |
+            Treat the PR title, description, and linked tickets as context for what the change is meant to do. Any of them may be missing, thin, or out of date; that is never a finding. Judge whether the change does what that intent suggests, and whether it is sound: security, architecture, and code quality. Raise a gap with a ticket only when the PR claims something the code doesn't deliver, or does something neither the ticket nor the description asks for. A PR may cover part of a ticket on purpose; don't list the rest. Check each concrete claim the description makes about the code, such as what it validates, removes, or leaves untouched, against the code itself, and report any claim the code doesn't back.
+
+            Report an issue only when it is likely under normal use of the code as written. Skip issues that need:
+            - unusual or hostile input from the operator running the code;
+            - rare timing, such as a race within a confirmation prompt, unless it can cause data loss or other irreversible harm;
+            - a hypothetical bad value in config the repo already sets, not one this PR changes;
+            - an attacker who already has the access the issue would grant.
+
+            Don't ask for more tests or CI coverage.
+
+            If the PR description explains why a concern is handled or doesn't apply, don't raise it, unless the code contradicts the description.
+          # /improve, on demand only. Each suggestion is a change the author can
+          # commit from the PR, and a run that finds nothing posts nothing.
+          pr_code_suggestions.committable_code_suggestions: 'true'
+          pr_code_suggestions.focus_only_on_problems: 'false'
+          pr_code_suggestions.num_code_suggestions_per_chunk: '6'
+          pr_code_suggestions.publish_output_no_suggestions: 'false'
+          # The review's bar, with a scope line in place of its paragraph on
+          # intent; /improve's prompt carries only the PR title.
+          pr_code_suggestions.extra_instructions: |
+            Suggest improvements that stay within the scope of the change; leave unrelated cleanup alone.
+
+            Report an issue only when it is likely under normal use of the code as written. Skip issues that need:
+            - unusual or hostile input from the operator running the code;
+            - rare timing, such as a race within a confirmation prompt, unless it can cause data loss or other irreversible harm;
+            - a hypothetical bad value in config the repo already sets, not one this PR changes;
+            - an attacker who already has the access the issue would grant.
+
+            Don't ask for more tests or CI coverage.
+
+            If the PR description explains why a concern is handled or doesn't apply, don't raise it, unless the code contradicts the description.
