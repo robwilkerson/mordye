@@ -83,6 +83,34 @@ func TestUnknownKeysInErrorsAreEscaped(t *testing.T) {
 	}
 }
 
+func TestRejectsModesItCannotComplete(t *testing.T) {
+	for mode, want := range map[string]string{
+		"light":  "can't complete light themes yet",
+		"purple": `mode "purple"`,
+		"Dark":   `mode "Dark"`,
+	} {
+		in := macchiato()
+		in.Mode = mode
+		if _, err := Complete(in); err == nil || !strings.Contains(err.Error(), want) {
+			t.Errorf("mode %q: err = %v, want one containing %q", mode, err, want)
+		}
+	}
+}
+
+func TestAcceptsDarkOrNoMode(t *testing.T) {
+	for _, mode := range []string{"", "dark"} {
+		in := macchiato()
+		in.Mode = mode
+		out, err := Complete(in)
+		if err != nil {
+			t.Fatalf("mode %q: %v", mode, err)
+		}
+		if out.Mode != "dark" {
+			t.Errorf("mode %q: output mode = %q, want dark", mode, out.Mode)
+		}
+	}
+}
+
 func TestRejectsUnsafeNames(t *testing.T) {
 	for _, name := range []string{"x\n[shell]", `x"y`, "x\x1b]0;pwn\x07", "x y", "$(id)", "..", ".", "-rf"} {
 		in := macchiato()

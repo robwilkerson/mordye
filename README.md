@@ -132,6 +132,7 @@ The input is a sparse palette:
 - **`swatches`:** extra theme colors with no role, such as Catppuccin's accent menu. They can fill terminal slots. The only interface roles one can reach are a missing `error`, `warning`, or `info`, by way of the terminal red, yellow, or blue (see [Interface Roles](#interface-roles)).
 - **`accent`:** on a theme with an accent menu, the swatch you chose. It keeps `primary` and `secondary` out of the terminal colors, so changing the accent never moves them.
 - **`terminal`:** any terminal colors the source already has. These pass through unchanged, except that a chosen `accent` keeps the cursor.
+- **`mode`:** `dark`, or leave it out. Mordye can't complete light themes yet ([#27](https://github.com/robwilkerson/mordye/issues/27)), so `light` is an error rather than a dark palette under a light label.
 - **`palette`:** the id of a [bundled terminal palette](#bundled-palettes), such as `dracula`. It fills `terminal` when the input has no terminal colors of its own. When it has some, those win whole, so two palettes never mix. An id Mordye doesn't bundle is an error. Built-in adapters set it for the themes they know.
 
 The palette's `name` and every swatch name must start with an ASCII letter or digit, then use only letters, digits, `.`, `_`, and `-`. Names come from theme files and end up in generated config, so Mordye rejects anything else rather than pass it along.

@@ -12,6 +12,10 @@ moves them under a version heading when it cuts the release.
 
 ## Unreleased
 
+- **Light mode is an error, for now.** Input with `"mode": "light"` used to
+  get dark surfaces under a light label; Mordye now refuses it until it can
+  complete light themes. Leaving `mode` out, or empty, still means dark; any
+  other value is rejected.
 - **Generated bright white is never dimmer than your text.** It used to be able
   to come out dimmer than the terminal foreground when the theme's secondary
   text color was less tinted. A bright white you pass in is used as given.
