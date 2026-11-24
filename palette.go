@@ -250,6 +250,15 @@ func validate(in Input) error {
 	if in.Name != "" && !safeName(in.Name) {
 		return fmt.Errorf("name %q: %s", in.Name, nameRule)
 	}
+	// The surfaces and tuning constants assume a dark background, so a light
+	// palette would come out unreadable (#27).
+	switch in.Mode {
+	case "", "dark":
+	case "light":
+		return fmt.Errorf("mode %q: Mordye can't complete light themes yet", in.Mode)
+	default:
+		return fmt.Errorf("mode %q: want dark", in.Mode)
+	}
 	for _, role := range []string{"primary", "on_surface"} {
 		if in.Colors[role] == "" {
 			return fmt.Errorf("input is missing colors.%s, which every palette needs", role)
