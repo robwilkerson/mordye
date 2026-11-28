@@ -15,7 +15,7 @@ jobs:
     timeout-minutes: 5
     env:
       # renovate: datasource=github-releases depName=mongodb/kingfisher
-      KINGFISHER_VERSION: 2.19.1
+      KINGFISHER_VERSION: 2.20.0
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
